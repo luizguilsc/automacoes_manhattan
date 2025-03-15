@@ -6,6 +6,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from tkinter import filedialog, messagebox
+
 from time import sleep
 
 class AutoClick:
@@ -117,15 +119,13 @@ class Automation():
         except Exception as e:
             print(f"Erro ao executar o script: {e}")
 
-
-    def reason_code_auto(self):
+    def reason_code_auto(self, df):
         #Label da ILPN
         auto_click = AutoClick(self.driver)
         inventory_container_path = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/inventory-grid/dm-list-layout/div/div/div[2]/dm-filter/div[2]/div/div[2]/div[2]/text-field-filter/div/ion-row/div/div/ion-input/input"
         checkbox = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/div[1]/ion-content/grid-view/div/ngx-datatable/div/datatable-body/datatable-selection/datatable-scroller/datatable-row-wrapper[1]/datatable-body-row/div[1]/datatable-body-cell/div/label/input"
         more_options = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/footer-actions/ion-grid/ion-row/ion-col[3]/div/div/more-actions/ion-button"
         reidentify_item = "//*[@id='mat-menu-panel-2']/div/div[2]/button"
-        copiar_sku =  "005303028"
         lupa = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[1]/div/button"
         checkbox_sku = "/html/body/app-root/ion-app/ion-modal[2]/lookup-dialogue/modal-container/div/div/modal-content/ion-row[3]/grid-view/div/ngx-datatable/div/datatable-body/datatable-selection/datatable-scroller/datatable-row-wrapper/datatable-body-row/div[1]/datatable-body-cell/div/input"
         submit_sku = "/html/body/app-root/ion-app/ion-modal[2]/lookup-dialogue/modal-container/div/modal-footer/div/div[2]/ion-button"
@@ -137,43 +137,94 @@ class Automation():
         ref2 = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[3]/input"
         attribute1 = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[3]/ion-item[1]/input"
         inventory_type = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[2]/popup-dropdown[1]/ion-label/div"
-        inv_0014 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[1]/ion-label/div"
-        inv_1401 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[2]/ion-label/div"
         product_status = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[2]/popup-dropdown[2]/ion-label/div"
         product_status_021 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[8]/ion-label/div"
         confir_reidentify_item = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-footer/button[1]"
+        inv_0014 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[1]/ion-label/div"
+        inv_1401 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[2]/ion-label/div"
+        # copiar_sku =  self.loop_lendo_planilha(df= "item")
+        # facility = self.loop_lendo_planilha(df= "facility")
+        # ilpn = self.loop_lendo_planilha(df= "ilpn")
         #Criar Looping para ler as ILPN's
-        auto_click.click_elemento(inventory_container_path, 30)
-        auto_click.enviar_keys(inventory_container_path, "Q1232393",30)
-        auto_click.pressionar_enter(inventory_container_path, 10)
-        auto_click.click_elemento(checkbox, 10)
-        auto_click.click_elemento(more_options, 10)
-        auto_click.click_elemento(reidentify_item, 10)
-        self.popup_please_wait
-        self.executar_script(script_input_item_Name,copiar_sku)
-        auto_click.click_elemento(lupa, 30)
-        auto_click.click_elemento(checkbox_sku, 30)
-        auto_click.click_elemento(submit_sku, 30)
-        auto_click.click_elemento(reasoncode_field, 30)
-        auto_click.enviar_keys(reasoncode_field, "T3", 30)
-        auto_click.pressionar_enter(reasoncode_field, 30)
-        auto_click.scroll_to_element(ref1)
-        auto_click.click_elemento(ref1, 30)
-        auto_click.enviar_keys(ref1, "Lucas Inspetor", 30)
-        # auto_click.scroll_to_element(ref2)
-        auto_click.enviar_keys(ref2, "NF: 17488789", 30)
-        auto_click.enviar_keys(attribute1, "BOA", 30)
-        auto_click.click_elemento(inventory_type, 30)
-        auto_click._encontrar_elemento(inventory_type, 30, EC.visibility_of_element_located)
-        menu_item = WebDriverWait(self.driver, 30).until(EC.visibility_of_element_located((By.XPATH, inv_1401)))
-        auto_click.click_elemento(inv_1401, 30)
-        auto_click.scroll_to_element(product_status)
-        auto_click.click_elemento(product_status, 30)
-        auto_click.scroll_to_element(product_status_021)
-        auto_click.click_elemento(product_status_021, 30)
-        auto_click.click_elemento(confir_reidentify_item, 30)
-        auto_click.clear_field(inventory_container_path, 30)
+        # try:
+        try:
+            # df = self.importar_planilha()
+            lista_dados = self.loop_lendo_planilha(df)
+            
+            for ilpn, item, facility in lista_dados:
+                print(f"Processando ILPN: {ilpn}, Item: {item}, Facility: {facility}")
+                auto_click.click_elemento(inventory_container_path, 30)
+                auto_click.enviar_keys(inventory_container_path, ilpn, 30)
+                auto_click.pressionar_enter(inventory_container_path, 10)
+                auto_click.click_elemento(checkbox, 10)
+                auto_click.click_elemento(more_options, 10)
+                auto_click.click_elemento(reidentify_item, 10)
+                self.popup_please_wait()
+                self.executar_script(script_input_item_Name, f"00{item}", 30)
+                auto_click.click_elemento(lupa, 30)
+                auto_click.click_elemento(checkbox_sku, 30)
+                auto_click.click_elemento(submit_sku, 30)
+                auto_click.click_elemento(reasoncode_field, 30)
+                auto_click.enviar_keys(reasoncode_field, "T3", 30)
+                auto_click.pressionar_enter(reasoncode_field, 30)
+
+                # Preenchendo os campos adicionais
+                auto_click.scroll_to_element(ref1)
+                auto_click.click_elemento(ref1, 30)
+                auto_click.enviar_keys(ref1, "Adriano", 30)
+                auto_click.enviar_keys(ref2, "Solicitação para o BOA", 30)
+                auto_click.enviar_keys(attribute1, "BOA", 30)
+
+                # Seleção do tipo de inventário
+                auto_click.click_elemento(inventory_type, 30)
+                auto_click._encontrar_elemento(inventory_type, 30, EC.visibility_of_element_located)
+                
+                try:
+                    if facility == "0014":
+                        auto_click.click_elemento(inv_0014, 30)
+                    elif facility == "1401":
+                        auto_click.click_elemento(inv_1401, 30)
+                    else:
+                        print(f"Facility divergente: {facility}")
+                except Exception as e:
+                    print(f"Erro ao validar Inventory Type: {e}")
+                    self.driver.quit()
+                
+                auto_click.scroll_to_element(product_status)
+                auto_click.click_elemento(product_status, 30)
+                auto_click.scroll_to_element(product_status_021)
+                auto_click.click_elemento(product_status_021, 30)
+                input("Parando automação")
+                auto_click.click_elemento(confir_reidentify_item, 30)
+                auto_click.clear_field(inventory_container_path, 30)
+            
+        except Exception as e:
+            print(f"Erro na automação: {e}")
              
+
+    def importar_planilha(self):
+        try:
+            file = filedialog.askopenfilename(title="Selecione o Arquivo", filetypes=[("Excel Files", "*.csv;*.xlsm")])
+            if file:
+                if file.endswith(".csv"):
+                    df = pd.read_csv(file)
+                else:
+                    df = pd.read_excel(file)
+                
+                messagebox.showinfo("Arquivo Selecionado", f"Arquivo selecionado: {file}")
+                self.loop_lendo_planilha(df)
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao importar planilha: {e}")
+    
+    def loop_lendo_planilha(self, df):
+        dados = []
+        for index, row in df.iterrows():
+            ilpn = str(row.get('ILPN', 'N/A'))
+            item = str(row.get('Item', 'N/A'))
+            facility = str(row.get('Facility', 'N/A'))
+            dados.append((ilpn,item,facility))
+            print(f"ILPN: {ilpn}, Item: {item}, Facility: {facility}")
+        return dados
 
     def close_driver(self):
         if self.driver:
@@ -185,7 +236,6 @@ class Login():
         self.login = login
         self.senha = senha
 
-    # Fazer com que reconheça o login e senha e aplique no código
     def logando(self):
         
         email= "//input[@id='i0116']"
@@ -231,13 +281,4 @@ class Login():
         if not tentar_acao(lambda: auto_click.click_elemento(home, 10), "Tentando clicar no home"):
             return
 
-
-if __name__ == "__main__":
-    automation = Automation()
-    automation.setup_driver()
-    login = Login(automation.driver, "luiz.leite@viavarejo.com.br", "Python20")
-    login.logando()
-    automation.selecionar_tela()
-    automation.reason_code_auto()
-    # automation.close_driver()
-    input("Pressione qualquer tecla para finalizar")
+# if __name__ == "__main__":
