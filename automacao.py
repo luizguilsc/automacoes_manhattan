@@ -119,9 +119,10 @@ class Automation():
         except Exception as e:
             print(f"Erro ao executar o script: {e}")
 
-    def reason_code_auto(self, df):
+    def reason_code_auto(self, df, reason_code, status, filial, comentario1, comentario2):
         #Label da ILPN
         auto_click = AutoClick(self.driver)
+        feedback= []
         inventory_container_path = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/inventory-grid/dm-list-layout/div/div/div[2]/dm-filter/div[2]/div/div[2]/div[2]/text-field-filter/div/ion-row/div/div/ion-input/input"
         checkbox = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/div[1]/ion-content/grid-view/div/ngx-datatable/div/datatable-body/datatable-selection/datatable-scroller/datatable-row-wrapper[1]/datatable-body-row/div[1]/datatable-body-cell/div/label/input"
         more_options = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/footer-actions/ion-grid/ion-row/ion-col[3]/div/div/more-actions/ion-button"
@@ -142,17 +143,13 @@ class Automation():
         confir_reidentify_item = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-footer/button[1]"
         inv_0014 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[1]/ion-label/div"
         inv_1401 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[2]/ion-label/div"
-        # copiar_sku =  self.loop_lendo_planilha(df= "item")
-        # facility = self.loop_lendo_planilha(df= "facility")
-        # ilpn = self.loop_lendo_planilha(df= "ilpn")
-        #Criar Looping para ler as ILPN's
-        # try:
+        cancel = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-footer/button[2]"
+        inv_type = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[1]/div/ion-row/ion-col/div/ion-row/ion-col/div[4]/ion-row[2]/span"
         try:
-            # df = self.importar_planilha()
             lista_dados = self.loop_lendo_planilha(df)
             
-            for ilpn, item, facility in lista_dados:
-                print(f"Processando ILPN: {ilpn}, Item: {item}, Facility: {facility}")
+            for ilpn, item,in lista_dados:
+                print(f"Processando ILPN: {ilpn}, Item: {item}")
                 auto_click.click_elemento(inventory_container_path, 30)
                 auto_click.enviar_keys(inventory_container_path, ilpn, 30)
                 auto_click.pressionar_enter(inventory_container_path, 10)
@@ -165,41 +162,71 @@ class Automation():
                 auto_click.click_elemento(checkbox_sku, 30)
                 auto_click.click_elemento(submit_sku, 30)
                 auto_click.click_elemento(reasoncode_field, 30)
-                auto_click.enviar_keys(reasoncode_field, "T3", 30)
+                auto_click.enviar_keys(reasoncode_field, reason_code, 30)
                 auto_click.pressionar_enter(reasoncode_field, 30)
 
                 # Preenchendo os campos adicionais
                 auto_click.scroll_to_element(ref1)
                 auto_click.click_elemento(ref1, 30)
-                auto_click.enviar_keys(ref1, "Adriano", 30)
-                auto_click.enviar_keys(ref2, "Solicitação para o BOA", 30)
-                auto_click.enviar_keys(attribute1, "BOA", 30)
+                auto_click.enviar_keys(ref1, comentario1, 30)
+                auto_click.enviar_keys(ref2, comentario2, 30)
+                auto_click.enviar_keys(attribute1, status, 30)
 
+                # Capturar o inv_type
+                inv_type_value = auto_click.selecionar(inv_type, 30)
                 # Seleção do tipo de inventário
                 auto_click.click_elemento(inventory_type, 30)
                 auto_click._encontrar_elemento(inventory_type, 30, EC.visibility_of_element_located)
                 
                 try:
-                    if facility == "0014":
+                    if inv_type_value == "0014":
                         auto_click.click_elemento(inv_0014, 30)
-                    elif facility == "1401":
+                    elif inv_type_value == "1401":
                         auto_click.click_elemento(inv_1401, 30)
+                    
+                    elif inv_type_value != filial and filial == "1401" and reason_code == "M1":
+                        auto_click.click_elemento(inv_1401)
+                    
                     else:
-                        print(f"Facility divergente: {facility}")
+                        print(f"Facility divergente: {inv_type_value}")
+                        feedback.append(f"Facility divergente")
+                        try:
+                            auto_click.click_elemento(cancel, 30)
+                        except:
+                            pass
+                        continue
                 except Exception as e:
                     print(f"Erro ao validar Inventory Type: {e}")
-                    self.driver.quit()
+                    feedback.append(f"[ERRO] {e}")
+                    try:
+                        auto_click.click_elemento(cancel, 30)
+                    except:
+                        pass
+                    continue
                 
                 auto_click.scroll_to_element(product_status)
                 auto_click.click_elemento(product_status, 30)
                 auto_click.scroll_to_element(product_status_021)
                 auto_click.click_elemento(product_status_021, 30)
-                input("Parando automação")
+                # input("Parando automação")
                 auto_click.click_elemento(confir_reidentify_item, 30)
                 auto_click.clear_field(inventory_container_path, 30)
+                
+                try:
+                    feedback.append("Concluído")
+                except Exception as e:
+                    feedback.append(f"Erro: {e}")
+                    print(f"Erro ao processar ILPN {ilpn}: {e}")
             
         except Exception as e:
             print(f"Erro na automação: {e}")
+            if self.driver:
+                self.driver.quit()
+                feedback.append(f"Erro: {e}")
+        # Adicionar a coluna de feedback na planilha
+        df['Feedback'] = feedback
+        
+        return df
              
 
     def importar_planilha(self):
@@ -221,9 +248,8 @@ class Automation():
         for index, row in df.iterrows():
             ilpn = str(row.get('ILPN', 'N/A'))
             item = str(row.get('Item', 'N/A'))
-            facility = str(row.get('Facility', 'N/A'))
-            dados.append((ilpn,item,facility))
-            print(f"ILPN: {ilpn}, Item: {item}, Facility: {facility}")
+            dados.append((ilpn,item))
+            print(f"ILPN: {ilpn}, Item: {item}")
         return dados
 
     def close_driver(self):
@@ -271,7 +297,7 @@ class Login():
             if not tentar_acao(lambda: auto_click.click_elemento(avancar,10), "Tentando clicar em avançar"):
                 return
         except Exception as e:
-            print("Encerrando")
+            print(f"Encerrando {e}")
             
         
         
