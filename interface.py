@@ -12,7 +12,7 @@ class TelaPrincipal:
         # Frame para os campos de login
         self.frame_login = Frame(self.root)
         self.frame_login.pack(padx=10, pady=10, fill=X)
-
+        
         # Campo de E-mail
         self.label_email = Label(self.frame_login, text="E-mail")
         self.label_email.grid(column=0, row=0, sticky='w', padx=5, pady=5)
@@ -28,23 +28,23 @@ class TelaPrincipal:
         # Botão Salvar Login
         self.button_login = Button(self.frame_login, text="Salvar Login", command=self.salvando_login)
         self.button_login.grid(column=0, row=2, columnspan=2, pady=10, sticky='e')
-
+        
         # Frame para os botões de Importar e Executar
         self.frame_buttons = Frame(self.root)
         self.frame_buttons.pack(padx=10, pady=10, fill=X)
-
+        
         # Botão Importar Planilha
         self.importar_button = Button(self.frame_buttons, text="Importar", command=self.importar_planilha)
-        self.importar_button.pack(side=LEFT, padx=(0, 5))
+        self.importar_button.pack(side=RIGHT, padx=(5, 0))
         
-        # Botão Executar função do módulo automacao
-        self.executar_button = Button(self.frame_buttons, text="Executar", command=self.executar_funcao)
-        self.executar_button.pack(side=LEFT, padx=(5, 0))
-
+        # Botão Executar Verify
+        self.verify_button = Button(self.frame_buttons, text="Executar Verify", command=self.executar_verify)
+        self.verify_button.pack(side=RIGHT, padx=(5, 0))
+        
         # Frame para os comentários e Reason Code
         self.frame_comentarios = Frame(self.root)
         self.frame_comentarios.pack(padx=10, pady=10, fill=X)
-
+        
         # Opções
         self.opcoes_label = Label(self.frame_comentarios, text="Opções")
         self.opcoes_label.pack(anchor=W, pady=(0, 5))
@@ -62,16 +62,15 @@ class TelaPrincipal:
         self.ref2_label.pack(anchor=W)
         self.ref2_entry = Entry(self.frame_comentarios, width=40)
         self.ref2_entry.pack(anchor=W, pady=(0, 5))
-
+        
         # Frame para Reason Code, Filial e Status
         self.frame_reason_filial_status = Frame(self.frame_comentarios)
         self.frame_reason_filial_status.pack(anchor=W, pady=(0, 5), fill=X)
-
+        
         # Reason Code
         self.reasoncode_label = Label(self.frame_reason_filial_status, text="Reason Code")
         self.reasoncode_label.grid(column=0, row=0, padx=5)
         self.lista_reasoncode = ['T3', 'M1', '72', '82', 'FA', 'DT', 'AV', 'VF', 'VR']
-        
         self.rc = StringVar()
         self.lista_itens = ttk.Combobox(self.frame_reason_filial_status, width=5, textvariable=self.rc)
         self.lista_itens['values'] = self.lista_reasoncode
@@ -81,7 +80,6 @@ class TelaPrincipal:
         self.filial_field = Label(self.frame_reason_filial_status, text="Filial")
         self.filial_field.grid(column=2, row=0, padx=5)
         self.lista_filial = ["1401", "0014"]
-
         self.filial = StringVar()
         self.lista_filial_combobox = ttk.Combobox(self.frame_reason_filial_status, width=5, textvariable=self.filial)
         self.lista_filial_combobox['values'] = self.lista_filial
@@ -91,18 +89,21 @@ class TelaPrincipal:
         self.status_field = Label(self.frame_reason_filial_status, text="Status BOA/QEB")
         self.status_field.grid(column=4, row=0, padx=5)
         self.lista_status = ["BOA", "QEB"]
-
         self.status = StringVar()
         self.lista_status_combobox = ttk.Combobox(self.frame_reason_filial_status, width=5, textvariable=self.status)
         self.lista_status_combobox['values'] = self.lista_status
         self.lista_status_combobox.grid(column=5, row=0, padx=5)
+        
+        # Botão Executar função do módulo automacao
+        self.executar_button = Button(self.frame_reason_filial_status, text="Executar Reason Code", command=self.executar_funcao)
+        self.executar_button.grid(column=6, row=0, padx=5)
         
         # Display da Planilha
         self.display_planilha = ttk.LabelFrame(self.root, text='Planilha')
         self.display_planilha.pack(padx=10, pady=10, fill=BOTH, expand=True)
         self.data_display = Text(self.display_planilha, wrap=NONE)
         self.data_display.pack(padx=5, pady=5, fill=BOTH, expand=True)
-        
+                
     def update_entry(self, value):
         self.reasoncode_entry.delete(0, END)
         self.reasoncode_entry.insert(0, value)
@@ -159,10 +160,44 @@ class TelaPrincipal:
             automation.setup_driver()
             login = Login(automation.driver, email, senha)
             login.logando()
-            automation.selecionar_tela()
+            automation.selecionar_tela_inventory_details()
             
             # Processar a planilha e gerar feedback
             self.df = automation.reason_code_auto(self.df, reason_code, status, filial, comentario1, comentario2)
+            
+            # Exibir os dados da planilha com feedback no Text widget
+            self.exibir_dados_planilha()
+            
+            messagebox.showinfo("Sucesso", "Execução concluída com sucesso!")
+            automation.close_driver()
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao executar função: {e}")
+            if automation.driver:
+                automation.close_driver()
+    
+    def executar_verify(self):
+        try:
+            from automacao import Automation, Login
+            email = self.entry_email.get()
+            senha = self.entry_senha.get()
+            
+            # Verificação corrigida
+            if not email or not senha:
+                messagebox.showerror("Erro", "Preencha o e-mail e a senha antes de continuar.")
+                return
+            
+            if not hasattr(self, 'df') or self.df.empty:
+                messagebox.showerror("Erro", "Nenhuma planilha foi importada!")
+                return
+            
+            automation = Automation()
+            automation.setup_driver()
+            login = Login(automation.driver, email, senha)
+            login.logando()
+            automation.selecionar_asn()
+            
+            # Processar a planilha e gerar feedback
+            self.df = automation.auto_verify(self.df)
             
             # Exibir os dados da planilha com feedback no Text widget
             self.exibir_dados_planilha()
