@@ -53,7 +53,7 @@ class TelaPrincipal:
         # Comentários
         self.ref1_label = ttk.Label(self.frame_comentarios, text="Selecionar Comentário - 1:")
         self.ref1_label.grid(column=0, row=0, sticky='w', padx=5, pady=5)
-        self.ref1_comentario_lista = ['Ilpn C/Bloqueio (82/72)', 'M1 - Origem 0014 P/ IventoryType P/ 1401', 'Trocando Status BOA P/ QEB', 'Trocando Status QEB P/ BOA', 'D15 - Débito 20%', 'FA - Débito Extravio 100%', 'DT - Débito Total 100%']
+        self.ref1_comentario_lista = ['Ilpn C/Bloqueio (82/72)', 'M1 - Origem 0014 P/ InventoryType P/ 1401', 'Trocando Status BOA P/ QEB', 'Trocando Status QEB P/ BOA', 'D15 - Débito 20%', 'FA - Débito Extravio 100%', 'DT - Débito Total 100%']
         self.comentarios = StringVar()
         self.coment_1 = ttk.Combobox(self.frame_comentarios, width=40, textvariable=self.comentarios)
         self.coment_1['values'] = self.ref1_comentario_lista

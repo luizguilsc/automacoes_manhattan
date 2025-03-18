@@ -38,6 +38,15 @@ class AutoClick:
         print("Elemento encontrado:", elemento.text)
         return elemento.text
 
+    def encontrar_elemento_por_texto(self, seletor: str, texto: str, timeout: int = 30):
+        elementos = WebDriverWait(self.driver, timeout).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, seletor))
+        )
+        for elemento in elementos:
+            if texto in elemento.text:
+                return elemento
+        return None
+    
     def scroll_to_element(self, xpath):
         elemento = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, xpath))
@@ -86,11 +95,41 @@ class Automation():
             print(f"Verificar o erro {e}")
 
     def selecionar_asn(self):
-        auto = AutoClick(self.driver)
-        selecao_asn = "//*[@id='ASN']"
-        self.menu("ASN")
-        auto.click_elemento(selecao_asn, self.wait)
-        self.popup_please_wait()
+        try:
+            auto = AutoClick(self.driver)
+            selecao_asn = "//*[@id='ASN']"
+            self.menu("ASN")
+            auto.click_elemento(selecao_asn, self.wait)
+            self.popup_please_wait()
+        except Exception as e:
+            print(f"[ERRO] verificar {e}")
+
+    def selecionar_wm_mobile(self):
+        try:
+            auto = AutoClick(self.driver)
+            select_wm_mobile = "//button[@id='wmMobile']"
+            tela_ead_cross = "html/body/app-root/ion-app/ion-router-outlet/app-menu/ion-content/div/ion-list/app-menu-node[6]/ion-item/ion-label"
+            receb_asn = "/html/body/app-root/ion-app/ion-router-outlet/app-menu-details/ion-content/ion-list/ion-item[2]/ion-label"
+            dock_door = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
+            stg_1302 = "1302"
+            got_to_asn  ="/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
+            self.menu("WM Mobile")
+            auto.click_elemento(select_wm_mobile, self.wait)
+            self.popup_please_wait()
+            self.driver.switch_to.window(self.driver.window_handles[1])
+            self.popup_please_wait()
+            auto.click_elemento(tela_ead_cross, 30)
+            auto.click_elemento(receb_asn, 30)
+            auto.enviar_keys(dock_door,stg_1302, 30)
+            auto.click_elemento(got_to_asn, 30)
+            try:
+                validar_asn_field = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'button-label') and text()='Associate Additional Asn']")))
+                auto.click_elemento(validar_asn_field, 30)
+            except:
+                print("Button Associate Additional ASN n not find")
+                pass
+        except Exception as e:
+            print(f"[ERRO] verificar {e}")
 
     def popup_please_wait(self):
         if self.driver:
@@ -131,7 +170,9 @@ class Automation():
             print("Erro, elemento não apareceu dentro do tempo limite")
         except Exception as e:
             print(f"Erro ao executar o script: {e}")
-
+    def auto_wm_mobile(self, df):
+        ans_campo = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
+        ...
     def auto_verify(self,df):
         auto_click = AutoClick(self.driver)
         feedback = []
@@ -196,19 +237,19 @@ class Automation():
 
 
     def reason_code_auto(self, df, reason_code, status, filial, comentario1, comentario2):
-        #Label da ILPN
         auto_click = AutoClick(self.driver)
-        feedback= []
+        feedback = []
+        # Definição dos XPaths
         inventory_container_path = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/inventory-grid/dm-list-layout/div/div/div[2]/dm-filter/div[2]/div/div[2]/div[2]/text-field-filter/div/ion-row/div/div/ion-input/input"
         checkbox = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/div[1]/ion-content/grid-view/div/ngx-datatable/div/datatable-body/datatable-selection/datatable-scroller/datatable-row-wrapper[1]/datatable-body-row/div[1]/datatable-body-cell/div/label/input"
         more_options = "//*[@id='main']/inventory-grid/dm-list-layout/div/div/div[3]/div[2]/footer-actions/ion-grid/ion-row/ion-col[3]/div/div/more-actions/ion-button"
         reidentify_item = "//*[@id='mat-menu-panel-2']/div/div[2]/button"
+        reidentify_item_2 = "/html/body/div/div[2]/div/div/div/div[2]/button"
+        elementos = "driver.find_elements_by_css_selector('span.row-action-label')"
         lupa = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[1]/div/button"
         checkbox_sku = "/html/body/app-root/ion-app/ion-modal[2]/lookup-dialogue/modal-container/div/div/modal-content/ion-row[3]/grid-view/div/ngx-datatable/div/datatable-body/datatable-selection/datatable-scroller/datatable-row-wrapper/datatable-body-row/div[1]/datatable-body-cell/div/input"
         submit_sku = "/html/body/app-root/ion-app/ion-modal[2]/lookup-dialogue/modal-container/div/modal-footer/div/div[2]/ion-button"
-        script_input_item_Name = '''return document.querySelector("transfer-popup").querySelectorAll("input")[0];
-        '''
-        script_input_inventory_type = """return document.querySelector('#\\31 401');"""
+        script_input_item_Name = '''return document.querySelector("transfer-popup").querySelectorAll("input")[0];'''
         reasoncode_field = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[1]/autocomplete/div/ion-input/input"
         ref1 = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[2]/input"
         ref2 = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[2]/div/ion-row/ion-col/div/form/ion-row/ion-col/div/ion-row[2]/ion-col[3]/input"
@@ -221,88 +262,129 @@ class Automation():
         inv_1401 = "/html/body/app-root/ion-app/ion-popover/generic-dropdown/ion-list/ion-item[2]/ion-label/div"
         cancel = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-footer/button[2]"
         inv_type = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[1]/div/ion-row/ion-col/div/ion-row/ion-col/div[4]/ion-row[2]/span"
-        try:
-            lista_dados = self.loop_lendo_planilha(df)
+        dismiss = "/html/body/app-root/manh-overlay-container/toast/div/ion-grid/ion-row/ion-col[3]/ion-button"
+        att1_source = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[1]/div/ion-row/ion-col/div/ion-row/ion-col/div[12]/ion-row[2]/span"
+
+        lista_dados = self.loop_lendo_planilha(df)
             
-            for ilpn, item, asn,in lista_dados:
+        for ilpn, item, asn in lista_dados:
+            try:
                 print(f"Processando ILPN: {ilpn}, Item: {item}, ASN: {asn}")
+
                 auto_click.click_elemento(inventory_container_path, 30)
+                auto_click.clear_field(inventory_container_path, 30)
                 auto_click.enviar_keys(inventory_container_path, ilpn, 30)
                 auto_click.pressionar_enter(inventory_container_path, 10)
                 auto_click.click_elemento(checkbox, 10)
-                auto_click.click_elemento(more_options, 10)
-                auto_click.click_elemento(reidentify_item, 10)
-                self.popup_please_wait()
-                self.executar_script(script_input_item_Name, f"00{item}", 30)
-                auto_click.click_elemento(lupa, 30)
-                auto_click.click_elemento(checkbox_sku, 30)
-                auto_click.click_elemento(submit_sku, 30)
-                auto_click.click_elemento(reasoncode_field, 30)
-                auto_click.enviar_keys(reasoncode_field, reason_code, 30)
-                auto_click.pressionar_enter(reasoncode_field, 30)
 
-                # Preenchendo os campos adicionais
-                auto_click.scroll_to_element(ref1)
-                auto_click.click_elemento(ref1, 30)
-                auto_click.enviar_keys(ref1, comentario1, 30)
-                auto_click.enviar_keys(ref2, comentario2, 30)
-                auto_click.enviar_keys(attribute1, status, 30)
-
-                # Capturar o inv_type
-                inv_type_value = auto_click.selecionar(inv_type, 30)
-                # Seleção do tipo de inventário
-                auto_click.click_elemento(inventory_type, 30)
-                auto_click._encontrar_elemento(inventory_type, 30, EC.visibility_of_element_located)
-                
                 try:
-                    if inv_type_value == "0014":
-                        auto_click.click_elemento(inv_0014, 30)
-                    elif inv_type_value == "1401":
-                        auto_click.click_elemento(inv_1401, 30)
+                    auto_click.click_elemento(more_options, 30)
+                    elemento_desejado = auto_click.encontrar_elemento_por_texto('span.row-action-label', 'ReIdentify Item', 30)
                     
-                    elif inv_type_value != filial and filial == "1401" and reason_code == "M1":
-                        auto_click.click_elemento(inv_1401)
-                    
+                    if elemento_desejado:
+                        elemento_desejado.click()
+                        print("ReIdentify Item encontrado")
                     else:
-                        print(f"Facility divergente: {inv_type_value}")
-                        feedback.append(f"Facility divergente")
-                        try:
-                            auto_click.click_elemento(cancel, 30)
-                        except:
-                            pass
+                        print("Elemento não encontrado")
+                        feedback.append("[ERRO] Elemento não encontrado")
                         continue
+                except Exception as e:
+                    print(f"Erro ao identificar elemento: {e}")
+                    feedback.append(f"[ERRO] {e}")
+                    continue
+
+                self.popup_please_wait()
+
+                try:
+                    # Capturar o inv_type
+                    inv_type_value = auto_click.selecionar(inv_type, 30)
+                    auto_click.scroll_to_element(att1_source)
+                    att1_source_value = auto_click.selecionar(att1_source)
+                    print(f"inv_type_value: {inv_type_value}, att1_source_value: {att1_source_value}")
+
+                    if filial == inv_type_value and status == att1_source_value:
+                        auto_click.click_elemento(cancel, 30)
+                        feedback.append("ILPN com filial e status igual")
+                        print("Filial e Atributo igual ao selecionado")
+                        continue
+                    
+                    elif filial != inv_type_value and reason_code == "M1" and filial == "1401":
+                        self.executar_script(script_input_item_Name, f"00{item}", 30)
+                        auto_click.click_elemento(lupa, 30)
+                        auto_click.click_elemento(checkbox_sku, 30)
+                        auto_click.click_elemento(submit_sku, 30)
+                        auto_click.click_elemento(reasoncode_field, 30)
+                        auto_click.enviar_keys(reasoncode_field, reason_code, 30)
+                        auto_click.pressionar_enter(reasoncode_field, 30)
+
+                        # Preenchendo os campos adicionais
+                        auto_click.scroll_to_element(ref1)
+                        auto_click.click_elemento(ref1, 30)
+                        auto_click.enviar_keys(ref1, comentario1, 30)
+                        auto_click.enviar_keys(ref2, comentario2, 30)
+                        auto_click.enviar_keys(attribute1, status, 30)
+                        auto_click.click_elemento(inventory_type, 30)
+                        auto_click.click_elemento(inv_1401, 30)
+                        auto_click.scroll_to_element(product_status)
+                        auto_click.click_elemento(product_status)
+                        auto_click.scroll_to_element(product_status_021)
+                        auto_click.click_elemento(product_status_021)
+                        auto_click.click_elemento(confir_reidentify_item)
+
+                    elif filial == inv_type_value and status != att1_source_value:
+                        self.executar_script(script_input_item_Name, f"00{item}", 30)
+                        auto_click.click_elemento(lupa, 30)
+                        auto_click.click_elemento(checkbox_sku, 30)
+                        auto_click.click_elemento(submit_sku, 30)
+                        auto_click.click_elemento(reasoncode_field, 30)
+                        auto_click.enviar_keys(reasoncode_field, reason_code, 30)
+                        auto_click.pressionar_enter(reasoncode_field, 30)
+
+                        # Preenchendo os campos adicionais
+                        auto_click.scroll_to_element(ref1)
+                        auto_click.click_elemento(ref1, 30)
+                        auto_click.enviar_keys(ref1, comentario1, 30)
+                        auto_click.enviar_keys(ref2, comentario2, 30)
+                        auto_click.enviar_keys(attribute1, status, 30)
+                        auto_click.click_elemento(inventory_type, 30)
+
+                        if inv_type_value == "1401":
+                            auto_click.click_elemento(inv_1401, 30)
+                        else:
+                            auto_click.click_elemento(inv_0014, 30)
+
+                        auto_click.scroll_to_element(product_status)
+                        auto_click.click_elemento(product_status)
+                        auto_click.scroll_to_element(product_status_021)
+                        auto_click.click_elemento(product_status_021)
+                        auto_click.click_elemento(confir_reidentify_item)
+
+                    else:
+                        auto_click.click_elemento(cancel, 30)
+                        print("Verificar")
+                        continue
+
                 except Exception as e:
                     print(f"Erro ao validar Inventory Type: {e}")
                     feedback.append(f"[ERRO] {e}")
-                    try:
-                        auto_click.click_elemento(cancel, 30)
-                    except:
-                        pass
+                    auto_click.click_elemento(cancel, 30)
                     continue
-                
-                auto_click.scroll_to_element(product_status)
-                auto_click.click_elemento(product_status, 30)
-                auto_click.scroll_to_element(product_status_021)
-                auto_click.click_elemento(product_status_021, 30)
-                # input("Parando automação")
-                auto_click.click_elemento(confir_reidentify_item, 30)
-                auto_click.clear_field(inventory_container_path, 30)
-                
-                try:
-                    feedback.append("Concluído")
-                except Exception as e:
-                    feedback.append(f"Erro: {e}")
-                    print(f"Erro ao processar ILPN {ilpn}: {e}")
-            
-        except Exception as e:
-            print(f"Erro na automação: {e}")
-            if self.driver:
-                self.driver.quit()
-                feedback.append(f"Erro: {e}")
+
+                feedback.append("Concluído")
+                print(f"ILPN {ilpn} processado com sucesso")
+
+            except Exception as e:
+                print(f"Erro no loop {e}")
+                feedback.append(f"[ERRO] {e}")
+
+        if self.driver:
+            self.driver.quit()
+
         # Adicionar a coluna de feedback na planilha
         df['Feedback'] = feedback
         
         return df
+
              
 
     def importar_planilha(self):
