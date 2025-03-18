@@ -8,67 +8,68 @@ class TelaPrincipal:
     def __init__(self, root):
         self.root = root
         self.root.title("Automações Manhattan")
+        self.root.geometry("600x600")
         
         # Frame para os campos de login
-        self.frame_login = Frame(self.root)
+        self.frame_login = ttk.LabelFrame(self.root, text="Login")
         self.frame_login.pack(padx=10, pady=10, fill=X)
         
         # Campo de E-mail
-        self.label_email = Label(self.frame_login, text="E-mail")
+        self.label_email = ttk.Label(self.frame_login, text="E-mail")
         self.label_email.grid(column=0, row=0, sticky='w', padx=5, pady=5)
-        self.entry_email = Entry(self.frame_login, width=40)
+        self.entry_email = ttk.Entry(self.frame_login, width=40)
         self.entry_email.grid(column=1, row=0, padx=5, pady=5)
         
         # Campo de Senha
-        self.label_senha = Label(self.frame_login, text="Senha")
+        self.label_senha = ttk.Label(self.frame_login, text="Senha")
         self.label_senha.grid(column=0, row=1, sticky='w', padx=5, pady=5)
-        self.entry_senha = Entry(self.frame_login, width=40, show="*")
+        self.entry_senha = ttk.Entry(self.frame_login, width=40, show="*")
         self.entry_senha.grid(column=1, row=1, padx=5, pady=5)
         
         # Botão Salvar Login
-        self.button_login = Button(self.frame_login, text="Salvar Login", command=self.salvando_login)
-        self.button_login.grid(column=0, row=2, columnspan=2, pady=10, sticky='e')
+        self.button_login = ttk.Button(self.frame_login, text="Salvar Login", command=self.salvando_login)
+        self.button_login.grid(column=1, row=2, pady=10, sticky='e')
         
         # Frame para os botões de Importar e Executar
-        self.frame_buttons = Frame(self.root)
+        self.frame_buttons = ttk.LabelFrame(self.root, text="Ações")
         self.frame_buttons.pack(padx=10, pady=10, fill=X)
         
         # Botão Importar Planilha
-        self.importar_button = Button(self.frame_buttons, text="Importar", command=self.importar_planilha)
-        self.importar_button.pack(side=RIGHT, padx=(5, 0))
+        self.importar_button = ttk.Button(self.frame_buttons, text="Importar", command=self.importar_planilha)
+        self.importar_button.grid(column=0, row=0, padx=5, pady=5)
+        
+        # Label para o botão Verify
+        self.verify_label = ttk.Label(self.frame_buttons, text="Verificação:")
+        self.verify_label.grid(column=1, row=0, padx=5, pady=5)
         
         # Botão Executar Verify
-        self.verify_button = Button(self.frame_buttons, text="Executar Verify", command=self.executar_verify)
-        self.verify_button.pack(side=RIGHT, padx=(5, 0))
+        self.verify_button = ttk.Button(self.frame_buttons, text="Executar Verify", command=self.executar_verify)
+        self.verify_button.grid(column=2, row=0, padx=5, pady=5)
         
         # Frame para os comentários e Reason Code
-        self.frame_comentarios = Frame(self.root)
+        self.frame_comentarios = ttk.LabelFrame(self.root, text="Comentários e Reason Code")
         self.frame_comentarios.pack(padx=10, pady=10, fill=X)
         
-        # Opções
-        self.opcoes_label = Label(self.frame_comentarios, text="Opções")
-        self.opcoes_label.pack(anchor=W, pady=(0, 5))
-        
         # Comentários
-        self.ref1_label = Label(self.frame_comentarios, text="Comentário 1")
-        self.ref1_label.pack(anchor=W)
+        self.ref1_label = ttk.Label(self.frame_comentarios, text="Selecionar Comentário - 1:")
+        self.ref1_label.grid(column=0, row=0, sticky='w', padx=5, pady=5)
         self.ref1_comentario_lista = ['Ilpn C/Bloqueio (82/72)', 'M1 - Origem 0014 P/ IventoryType P/ 1401', 'Trocando Status BOA P/ QEB', 'Trocando Status QEB P/ BOA', 'D15 - Débito 20%', 'FA - Débito Extravio 100%', 'DT - Débito Total 100%']
         self.comentarios = StringVar()
         self.coment_1 = ttk.Combobox(self.frame_comentarios, width=40, textvariable=self.comentarios)
         self.coment_1['values'] = self.ref1_comentario_lista
-        self.coment_1.pack(anchor=W, pady=(0, 5))
+        self.coment_1.grid(column=1, row=0, padx=5, pady=5)
         
-        self.ref2_label = Label(self.frame_comentarios, text="Comentário 2")
-        self.ref2_label.pack(anchor=W)
-        self.ref2_entry = Entry(self.frame_comentarios, width=40)
-        self.ref2_entry.pack(anchor=W, pady=(0, 5))
+        self.ref2_label = ttk.Label(self.frame_comentarios, text="Digitar Comentário/Observação - 2: ")
+        self.ref2_label.grid(column=0, row=1, sticky='w', padx=5, pady=5)
+        self.ref2_entry = ttk.Entry(self.frame_comentarios, width=43)
+        self.ref2_entry.grid(column=1, row=1, padx=5, pady=5)
         
         # Frame para Reason Code, Filial e Status
-        self.frame_reason_filial_status = Frame(self.frame_comentarios)
-        self.frame_reason_filial_status.pack(anchor=W, pady=(0, 5), fill=X)
+        self.frame_reason_filial_status = ttk.Frame(self.frame_comentarios)
+        self.frame_reason_filial_status.grid(column=0, row=2, columnspan=2, pady=10, sticky='w')
         
         # Reason Code
-        self.reasoncode_label = Label(self.frame_reason_filial_status, text="Reason Code")
+        self.reasoncode_label = ttk.Label(self.frame_reason_filial_status, text="Reason Code")
         self.reasoncode_label.grid(column=0, row=0, padx=5)
         self.lista_reasoncode = ['T3', 'M1', '72', '82', 'FA', 'DT', 'AV', 'VF', 'VR']
         self.rc = StringVar()
@@ -77,7 +78,7 @@ class TelaPrincipal:
         self.lista_itens.grid(column=1, row=0, padx=5)
         
         # Filial
-        self.filial_field = Label(self.frame_reason_filial_status, text="Filial")
+        self.filial_field = ttk.Label(self.frame_reason_filial_status, text="Filial")
         self.filial_field.grid(column=2, row=0, padx=5)
         self.lista_filial = ["1401", "0014"]
         self.filial = StringVar()
@@ -86,7 +87,7 @@ class TelaPrincipal:
         self.lista_filial_combobox.grid(column=3, row=0, padx=5)
         
         # Status
-        self.status_field = Label(self.frame_reason_filial_status, text="Status BOA/QEB")
+        self.status_field = ttk.Label(self.frame_reason_filial_status, text="Status BOA/QEB")
         self.status_field.grid(column=4, row=0, padx=5)
         self.lista_status = ["BOA", "QEB"]
         self.status = StringVar()
@@ -95,7 +96,7 @@ class TelaPrincipal:
         self.lista_status_combobox.grid(column=5, row=0, padx=5)
         
         # Botão Executar função do módulo automacao
-        self.executar_button = Button(self.frame_reason_filial_status, text="Executar Reason Code", command=self.executar_funcao)
+        self.executar_button = ttk.Button(self.frame_reason_filial_status, text="Executar Reason Code", command=self.executar_funcao)
         self.executar_button.grid(column=6, row=0, padx=5)
         
         # Display da Planilha

@@ -135,9 +135,9 @@ class Automation():
     def auto_verify(self,df):
         auto_click = AutoClick(self.driver)
         feedback = []
-        asn_field = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/screen-page/div/div/div[1]/dm-filter/div[2]/div/div[2]/div[1]/text-field-filter/div/ion-row/div/div/ion-input/input"
+        asn_field = "//*[@id='main']/screen-page/div/div/div[1]/dm-filter/div[2]/div/div[2]/div[1]/text-field-filter/div/ion-row/div/div/ion-input/input"
         selecionar_asn = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/screen-page/div/div/div[2]/div/ion-content/card-panel/div[1]/div/card-view/div"
-        status_asn = self.driver.find_element(By.XPATH,"/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/screen-page/div/div/div[2]/div/ion-content/card-panel/div[1]/div/card-view/div/div[1]/div[1]")
+        # status_asn = self.driver.find_element(By.XPATH,"/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/screen-page/div/div/div[2]/div/ion-content/card-panel/div[1]/div/card-view/div/div[1]/div[1]")
         botao_verify = "/html/body/app-root/ion-app/div/ion-split-pane/ion-router-outlet/screen-page/div/div/div[2]/div/footer-actions/ion-grid/ion-row/ion-col[3]/div/div/dm-action[8]/ion-button"
         confirma_verify = "/html/body/app-root/ion-app/ion-modal/verify-popup/ion-footer/ion-toolbar/ion-row/ion-col[2]/ion-button[2]"
 
@@ -147,24 +147,33 @@ class Automation():
         auto_click.click_elemento(asn_field, 30)
 
         try:
-            for asn in lista_de_dados:
-                print(f"{asn} Carregada")
+            for ilpn, item, asn in lista_de_dados:  # Extração correta
+                print(f"Processando ASN: {asn}")
                 auto_click.click_elemento(asn_field, 30)
                 auto_click.enviar_keys(asn_field, asn, 30)
                 auto_click.pressionar_enter(asn_field, 30)
-                self.popup_please_wait()
-                auto_click.click_elemento(selecionar_asn, 30)
+                self.popup_please_wait()  # Espera adicional
 
                 try:
-                    status = status_asn.text.strip()
-                    if status.lower() == "in receiving":
-                        print(f"ASN {asn} está em receiving")
-                    else:
-                        print(f"Asn {asn} não está em 'In Receiving'")
-                        auto_click.clear_field(asn_field, 30)
-                        continue
+                    auto_click.click_elemento(selecionar_asn, 30)
                 except Exception as e:
-                    print(f"ERRO {e} na {asn}")                    
+                    print(f"Erro ao selecionar ASN: {e}")
+                    continue
+                
+                try:
+                    status_asn_element = self.driver.find_element(By.XPATH, selecionar_asn)
+                    status = status_asn_element.text.strip()
+                    # ... (verificação do status)
+                except Exception as e:
+                    print(f"Erro ao verificar status: {e}")
+                    continue
+
+                try:
+                    auto_click.scroll_to_element(botao_verify)
+                    auto_click.click_elemento(botao_verify, 30)
+                    auto_click.click_elemento(confirma_verify, 30)
+                except Exception as e:
+                    print(f"Erro ao clicar em Verify: {e}")
                     continue
                 auto_click.click_elemento(botao_verify, 30)
                 auto_click.click_elemento(confirma_verify, 30)
@@ -215,8 +224,8 @@ class Automation():
         try:
             lista_dados = self.loop_lendo_planilha(df)
             
-            for ilpn, item,in lista_dados:
-                print(f"Processando ILPN: {ilpn}, Item: {item}")
+            for ilpn, item, asn,in lista_dados:
+                print(f"Processando ILPN: {ilpn}, Item: {item}, ASN: {asn}")
                 auto_click.click_elemento(inventory_container_path, 30)
                 auto_click.enviar_keys(inventory_container_path, ilpn, 30)
                 auto_click.pressionar_enter(inventory_container_path, 10)
