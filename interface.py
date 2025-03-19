@@ -45,6 +45,14 @@ class TelaPrincipal:
         # Botão Executar Verify
         self.verify_button = ttk.Button(self.frame_buttons, text="Executar Verify", command=self.executar_verify)
         self.verify_button.grid(column=2, row=0, padx=5, pady=5)
+
+        # Label para o botão Verify
+        self.verify_label = ttk.Label(self.frame_buttons, text="EAD Faturado:")
+        self.verify_label.grid(column=3, row=0, padx=5, pady=5)
+
+        # Botão Executar Verify
+        self.verify_button = ttk.Button(self.frame_buttons, text="Receber EAD", command=self.executar_receiving_EAD)
+        self.verify_button.grid(column=4, row=0, padx=5, pady=5)
         
         # Frame para os comentários e Reason Code
         self.frame_comentarios = ttk.LabelFrame(self.root, text="Comentários e Reason Code")
@@ -199,6 +207,40 @@ class TelaPrincipal:
             
             # Processar a planilha e gerar feedback
             self.df = automation.auto_verify(self.df)
+            
+            # Exibir os dados da planilha com feedback no Text widget
+            self.exibir_dados_planilha()
+            
+            messagebox.showinfo("Sucesso", "Execução concluída com sucesso!")
+            automation.close_driver()
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao executar função: {e}")
+            if automation.driver:
+                automation.close_driver()
+
+    def executar_receiving_EAD(self):
+        try:
+            from automacao import Automation, Login
+            email = self.entry_email.get()
+            senha = self.entry_senha.get()
+            
+            # Verificação corrigida
+            if not email or not senha:
+                messagebox.showerror("Erro", "Preencha o e-mail e a senha antes de continuar.")
+                return
+            
+            if not hasattr(self, 'df') or self.df.empty:
+                messagebox.showerror("Erro", "Nenhuma planilha foi importada!")
+                return
+            
+            automation = Automation()
+            automation.setup_driver()
+            login = Login(automation.driver, email, senha)
+            login.logando()
+            automation.selecionar_wm_mobile()
+            
+            # Processar a planilha e gerar feedback
+            self.df = automation.auto_wm_mobile(self.df)
             
             # Exibir os dados da planilha com feedback no Text widget
             self.exibir_dados_planilha()
