@@ -40,19 +40,19 @@ class TelaPrincipal:
         
         # Label para o botão Verify
         self.verify_label = ttk.Label(self.frame_buttons, text="Verificação:")
-        self.verify_label.grid(column=1, row=0, padx=5, pady=5)
+        self.verify_label.grid(column=3, row=0, padx=5, pady=5)
         
         # Botão Executar Verify
         self.verify_button = ttk.Button(self.frame_buttons, text="Executar Verify", command=self.executar_verify)
-        self.verify_button.grid(column=2, row=0, padx=5, pady=5)
+        self.verify_button.grid(column=4, row=0, padx=5, pady=5)
 
         # Label para o botão Verify
         self.verify_label = ttk.Label(self.frame_buttons, text="EAD Faturado:")
-        self.verify_label.grid(column=3, row=0, padx=5, pady=5)
+        self.verify_label.grid(column=1, row=0, padx=5, pady=5)
 
         # Botão Executar Verify
         self.verify_button = ttk.Button(self.frame_buttons, text="Receber EAD", command=self.executar_receiving_EAD)
-        self.verify_button.grid(column=4, row=0, padx=5, pady=5)
+        self.verify_button.grid(column=2, row=0, padx=5, pady=5)
         
         # Frame para os comentários e Reason Code
         self.frame_comentarios = ttk.LabelFrame(self.root, text="Comentários e Reason Code")

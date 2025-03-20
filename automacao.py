@@ -37,6 +37,19 @@ class AutoClick:
         elemento = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, xpath)))
         print("Elemento encontrado:", elemento.text)
         return elemento.text
+    def elemento_existe(self, xpath, timeout=5):
+        """
+        Verifica se um elemento existe na página dentro do tempo limite definido.
+
+        :param xpath: O XPath do elemento a ser verificado.
+        :param timeout: Tempo máximo (segundos) para aguardar o elemento aparecer.
+        :return: True se o elemento existir, False caso contrário.
+        """
+        try:
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except:
+            return False
 
     def encontrar_elemento_por_texto(self, seletor: str, texto: str, timeout: int = 30):
         elementos = WebDriverWait(self.driver, timeout).until(
@@ -174,30 +187,91 @@ class Automation():
     def auto_wm_mobile(self, df):
         auto_click = AutoClick(self.driver)
         feedback = []
-        
+
         # XPaths dos elementos
-        asn_campo = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
-        go_receiving = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
+        asn_campo_1 = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
+        go_receiving_1 = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
         associate_button = "//span[contains(@class, 'button-label') and text()='Associate Additional Asn']"
-        ion_backdrop = 'ion-backdrop'  # XPath do backdrop invisível
+        # ion_backdrop = "/html/body[@class='backdrop-no-scroll']"  # Corrigido para XPath correto
+        # seta_voltar = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/wm-action/ion-footer/wm-action-bar/ion-footer/ion-toolbar/ion-buttons/ion-button"
+        stg_1302 = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
+        go_stg = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
+        recebimento_tela = "/html/body/app-root/ion-app/ion-router-outlet/app-menu-details/ion-content/ion-list/ion-item[2]/ion-label"
+        pop = "/html/body/app-root/ion-app/ion-popover/error-popover/ion-content/div"
+        if auto_click.elemento_existe(associate_button, 2):
+            auto_click.click_elemento(associate_button, 2)
+            sleep(1)
+            # self.popup_please_wait()
+        else:
+            print("Botão 'Associate Additional ASN' não encontrado. Continuando...")  # Se der erro aqui, seguimos adiante
 
         lista_de_dados = self.loop_lendo_planilha(df)
+        if not lista_de_dados or all(x[0] is None and x[1] is None and x[2] is None for x in lista_de_dados):
+            print("Erro: Nenhum dado válido encontrado na planilha. Verifique o arquivo!")
+            return df
 
         for ilpn, item, asn in lista_de_dados:
-            print(f"Processando ASN: {asn}")
-            auto_click.click_elemento(asn_campo,30)
-            auto_click.enviar_keys(asn_campo, asn, 30)
+            print(f"Processando ASN: {asn}, {item}, {ilpn}")
+            sucesso = False  
+
             try:
-                auto_click.click_elemento(go_receiving, 30)
-                feedback.append("Verificado")
+                # Clica no campo, limpa e insere o ASN
+                if auto_click.elemento_existe(asn_campo_1, 2):
+                    print("Campo ASN encontrado, clicando...")
+                    auto_click.click_elemento(asn_campo_1, 2)
+                    auto_click.clear_field(asn_campo_1, 2)
+                    auto_click.enviar_keys(asn_campo_1, asn, 2)
+                else:
+                    print(f"Campo ASN não encontrado para {asn}, pulando...")
+                    feedback.append(f"Erro: Campo ASN não encontrado para {asn}")
+                    continue
+
+                # Clica no botão "Go Receiving"
+                auto_click.click_elemento(go_receiving_1, 2)
+                try:
+                    WebDriverWait(self.driver, 2).until(
+                        EC.presence_of_element_located((By.XPATH, asn_campo_1))
+                    )
+                except:
+                    pass
+
+                # **Se o pop-up de erro aparecer, pressionar ESC e continuar**
+                if auto_click.elemento_existe(pop, 1):
+                    print(f"Pop-up de erro detectado ao processar ASN {asn}. Fechando...")
+                    ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+                    feedback.append(f"Erro: ASN {asn} já recebida")
+                    continue
+
+                print(f"ASN {asn} processado e verificado com sucesso!")
+                feedback.append(f"ASN {asn} recebido com sucesso")
+                sucesso = True
+
             except Exception as e:
                 print(f"Erro ao processar ASN {asn}: {e}")
-                feedback.append(f"Erro ao processar ASN {asn} Verificar")
-                ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
-                auto_click.clear_field(asn_campo, 30)
-            auto_click.clear_field(asn_campo, 30)
 
+                # **Se o pop-up ainda existir, tentar fechar com ESC novamente**
+                if auto_click.elemento_existe(pop, 3):
+                    ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
 
+                feedback.append(f"Erro ao processar ASN {asn}, verificar.")
+
+                # **Voltar ao menu principal apenas se der erro**
+                self.driver.back()
+                auto_click.click_elemento(recebimento_tela, 2)
+                auto_click.click_elemento(stg_1302, 2)
+                auto_click.enviar_keys(stg_1302, "1302", 2)
+                auto_click.click_elemento(go_stg, 2)
+
+                try:
+                    auto_click.click_elemento(associate_button, 2)
+                    sleep(1)
+                    self.popup_please_wait()
+                except:
+                    pass 
+
+            finally:
+                # **Garante que o campo seja limpo antes do próximo loop**
+                auto_click.clear_field(asn_campo_1, 2)
 
         df['Feedback'] = feedback
         return df
@@ -217,67 +291,13 @@ class Automation():
             feedback_msg = "Erro na automação"  # Valor padrão
 
             try:
-                print(f"Processando ASN: {asn}")
-                auto_click.click_elemento(asn_field, 30)
-                auto_click.enviar_keys(asn_field, asn, 30)
-                auto_click.pressionar_enter(asn_field, 30)
-                self.popup_please_wait()
-
-                # Capturar o elemento novamente para evitar stale element reference
-                for tentativa in range(3):
-                    try:
-                        selecionar_asn_element = WebDriverWait(self.driver, 30).until(
-                            EC.presence_of_element_located((By.XPATH, selecionar_asn))
-                        )
-                        selecionar_asn_element.click()
-                        break
-                    except StaleElementReferenceException:
-                        print(f"Tentativa {tentativa+1}: Stale Element Reference, tentando novamente...")
-                        sleep(1)
-                    except Exception as e:
-                        print(f"Erro ao encontrar o ASN: {e}")
-                        feedback_msg = "Erro ao selecionar ASN"
-                        break
-
-                # Verificar status da ASN
-                try:
-                    selecao_status_asn = "//*[@id='main']/screen-page/div/div/div[2]/div/ion-content/card-panel/div/div/card-view/div/div[1]/div[1]"
-                    status_asn_element = WebDriverWait(self.driver, 30).until(
-                        EC.presence_of_element_located((By.XPATH, selecao_status_asn))
-                    )
-                    status = status_asn_element.text.strip()
-                    print(f"Status da ASN {asn}: {status}")
-
-                    if status.lower() == "in receiving":
-                        print("Status da ASN é In Receiving, verificando se o ASN está na lista de verificação...")
-                        feedback_msg = "Status da ASN é In Receiving"
-                    else:
-                        feedback_msg = f"ASN não está In Receiving - Status: {status}"
-                        
-                        # Limpa o campo antes de seguir para a próxima ASN
-                        auto_click.click_elemento(asn_field, 30)
-                        auto_click.clear_field(asn_field, 30)
-                        
-                        feedback.append(feedback_msg)  # Adiciona ao feedback e passa para a próxima ASN
-                        continue  # Pula para a próxima ASN
-
-                except Exception as e:
-                    feedback_msg = "Erro ao verificar status do ASN"
-                    print(f"Erro ao verificar status do ASN: {e}")
-                    feedback.append(feedback_msg)
-                    continue  # Pula para a próxima ASN
-
-                # Se chegou aqui, o status era "In Receiving", então continua com a verificação
-                auto_click.scroll_to_element(botao_verify)
-                auto_click.click_elemento(botao_verify, 30)
-                auto_click.click_elemento(confirma_verify, 30)
-                auto_click.clear_field(asn_field, 30)
-                feedback.append(feedback_msg)
-
-
+                self.processar_asn(auto_click, asn_field, selecionar_asn, botao_verify, confirma_verify, asn, item, ilpn)
+                feedback_msg = "ASN verificado com sucesso"
             except Exception as e:
                 print(f"Erro inesperado na automação: {e}")
                 feedback_msg = "Erro inesperado na automação"
+
+            feedback.append(feedback_msg)
 
         # Ajustando a lista de feedback
         while len(feedback) < len(df):
@@ -287,6 +307,50 @@ class Automation():
 
         df['Feedback'] = feedback
         return df
+
+    def processar_asn(self, auto_click, asn_field, selecionar_asn, botao_verify, confirma_verify, asn, item, ilpn):
+        print(f"Processando ASN: {asn}, {item}, {ilpn}")
+        auto_click.click_elemento(asn_field, 30)
+        auto_click.enviar_keys(asn_field, asn, 30)
+        auto_click.pressionar_enter(asn_field, 30)
+        self.popup_please_wait()
+
+        # Capturar o elemento novamente para evitar stale element reference
+        for tentativa in range(3):
+            try:
+                selecionar_asn_element = WebDriverWait(self.driver, 30).until(
+                    EC.presence_of_element_located((By.XPATH, selecionar_asn))
+                )
+                selecionar_asn_element.click()
+                break
+            except StaleElementReferenceException:
+                print(f"Tentativa {tentativa+1}: Stale Element Reference, tentando novamente...")
+                sleep(1)
+            except Exception as e:
+                print(f"Erro ao encontrar o ASN: {e}")
+                raise Exception("Erro ao selecionar ASN")
+
+        # Verificar status da ASN
+        try:
+            selecao_status_asn = "//*[@id='main']/screen-page/div/div/div[2]/div/ion-content/card-panel/div/div/card-view/div/div[1]/div[1]"
+            status_asn_element = WebDriverWait(self.driver, 30).until(
+                EC.presence_of_element_located((By.XPATH, selecao_status_asn))
+            )
+            status = status_asn_element.text.strip()
+            print(f"Status da ASN {asn}: {status}")
+
+            if status.lower() != "in receiving":
+                raise Exception(f"ASN não está In Receiving - Status: {status}")
+
+            # Se chegou aqui, o status era "In Receiving", então continua com a verificação
+            auto_click.scroll_to_element(botao_verify)
+            auto_click.click_elemento(botao_verify, 30)
+            auto_click.click_elemento(confirma_verify, 30)
+            auto_click.clear_field(asn_field, 30)
+
+        except Exception as e:
+            print(f"Erro ao verificar status do ASN: {e}")
+            raise Exception("Erro ao verificar status do ASN")
 
     def reason_code_auto(self, df, reason_code, status, filial, comentario1, comentario2):
         auto_click = AutoClick(self.driver)
