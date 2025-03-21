@@ -130,13 +130,13 @@ class Automation():
             auto.click_elemento(select_wm_mobile, self.wait)
             self.popup_please_wait()
             self.driver.switch_to.window(self.driver.window_handles[1])
-            self.popup_please_wait()
+            # self.popup_please_wait()
             auto.click_elemento(tela_ead_cross, 30)
             auto.click_elemento(receb_asn, 30)
             auto.enviar_keys(dock_door,stg_1302, 30)
             auto.click_elemento(got_to_asn, 30)
             try:
-                validar_asn_field = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'button-label') and text()='Associate Additional Asn']")))
+                validar_asn_field = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'button-label') and text()='Associate Additional Asn']")))
                 auto.click_elemento(validar_asn_field, 30)
             except:
                 print("Button Associate Additional ASN n not find")
@@ -198,9 +198,9 @@ class Automation():
         go_stg = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
         recebimento_tela = "/html/body/app-root/ion-app/ion-router-outlet/app-menu-details/ion-content/ion-list/ion-item[2]/ion-label"
         pop = "/html/body/app-root/ion-app/ion-popover/error-popover/ion-content/div"
-        if auto_click.elemento_existe(associate_button, 2):
-            auto_click.click_elemento(associate_button, 2)
-            sleep(1)
+        if auto_click.elemento_existe(associate_button, 5):
+            auto_click.click_elemento(associate_button, 5)
+            # sleep(1)
             # self.popup_please_wait()
         else:
             print("Botão 'Associate Additional ASN' não encontrado. Continuando...")  # Se der erro aqui, seguimos adiante
@@ -236,7 +236,7 @@ class Automation():
                     pass
 
                 # **Se o pop-up de erro aparecer, pressionar ESC e continuar**
-                if auto_click.elemento_existe(pop, 1):
+                if auto_click.elemento_existe(pop, 2):
                     print(f"Pop-up de erro detectado ao processar ASN {asn}. Fechando...")
                     ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
                     feedback.append(f"Erro: ASN {asn} já recebida")
@@ -250,7 +250,7 @@ class Automation():
                 print(f"Erro ao processar ASN {asn}: {e}")
 
                 # **Se o pop-up ainda existir, tentar fechar com ESC novamente**
-                if auto_click.elemento_existe(pop, 3):
+                if auto_click.elemento_existe(pop, 2):
                     ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
 
                 feedback.append(f"Erro ao processar ASN {asn}, verificar.")
@@ -264,10 +264,13 @@ class Automation():
 
                 try:
                     auto_click.click_elemento(associate_button, 2)
-                    sleep(1)
-                    self.popup_please_wait()
+                    auto_click.click_elemento(asn_campo_1, 2)
+                    auto_click.enviar_keys(asn_campo_1, asn, 2)
+                    auto_click.click_elemento(go_receiving_1, 2)
+                # sleep(2)
                 except:
                     pass 
+
 
             finally:
                 # **Garante que o campo seja limpo antes do próximo loop**
@@ -295,7 +298,9 @@ class Automation():
                 feedback_msg = "ASN verificado com sucesso"
             except Exception as e:
                 print(f"Erro inesperado na automação: {e}")
-                feedback_msg = "Erro inesperado na automação"
+                status = "//*[@id='main']/screen-page/div/div/div[2]/div/ion-content/card-panel/div/div/card-view/div/div[1]/div[1]"
+                desc = auto_click.selecionar(status, 30).strip()
+                feedback_msg = f"Verificar ASN manualmente {desc}"
 
             feedback.append(feedback_msg)
 
@@ -310,10 +315,11 @@ class Automation():
 
     def processar_asn(self, auto_click, asn_field, selecionar_asn, botao_verify, confirma_verify, asn, item, ilpn):
         print(f"Processando ASN: {asn}, {item}, {ilpn}")
+        auto_click.clear_field(asn_field,30)
         auto_click.click_elemento(asn_field, 30)
         auto_click.enviar_keys(asn_field, asn, 30)
         auto_click.pressionar_enter(asn_field, 30)
-        self.popup_please_wait()
+        # self.popup_please_wait()
 
         # Capturar o elemento novamente para evitar stale element reference
         for tentativa in range(3):
@@ -325,7 +331,7 @@ class Automation():
                 break
             except StaleElementReferenceException:
                 print(f"Tentativa {tentativa+1}: Stale Element Reference, tentando novamente...")
-                sleep(1)
+                # sleep(1)
             except Exception as e:
                 print(f"Erro ao encontrar o ASN: {e}")
                 raise Exception("Erro ao selecionar ASN")
@@ -340,6 +346,8 @@ class Automation():
             print(f"Status da ASN {asn}: {status}")
 
             if status.lower() != "in receiving":
+                auto_click.click_elemento(asn_field, 30)
+                auto_click.clear_field(asn_field, 30)
                 raise Exception(f"ASN não está In Receiving - Status: {status}")
 
             # Se chegou aqui, o status era "In Receiving", então continua com a verificação
@@ -350,6 +358,8 @@ class Automation():
 
         except Exception as e:
             print(f"Erro ao verificar status do ASN: {e}")
+            auto_click.click_elemento(asn_field, 30)
+            auto_click.clear_field(asn_field, 30)
             raise Exception("Erro ao verificar status do ASN")
 
     def reason_code_auto(self, df, reason_code, status, filial, comentario1, comentario2):
@@ -382,8 +392,10 @@ class Automation():
         att1_source = "/html/body/app-root/ion-app/ion-modal/transfer-popup/ion-content/ion-row[2]/div/div/ion-row[2]/ion-col[1]/div/ion-row/ion-col/div/ion-row/ion-col/div[12]/ion-row[2]/span"
 
         lista_dados = self.loop_lendo_planilha(df)
-            
+
         for ilpn, item, asn in lista_dados:
+            feedback_msg = "Erro: Não processado"  # Inicializa com um valor padrão
+            
             try:
                 print(f"Processando ILPN: {ilpn}, Item: {item}, ASN: {asn}")
 
@@ -396,111 +408,115 @@ class Automation():
                 try:
                     auto_click.click_elemento(more_options, 30)
                     elemento_desejado = auto_click.encontrar_elemento_por_texto('span.row-action-label', 'ReIdentify Item', 30)
-                    
+
                     if elemento_desejado:
                         elemento_desejado.click()
                         print("ReIdentify Item encontrado")
                     else:
                         print("Elemento não encontrado")
-                        feedback.append("[ERRO] Elemento não encontrado")
+                        feedback_msg = "[ERRO] Elemento não encontrado"
+                        feedback.append(feedback_msg)
                         continue
                 except Exception as e:
                     print(f"Erro ao identificar elemento: {e}")
-                    feedback.append(f"[ERRO] {e}")
+                    feedback_msg = f"[ERRO] {e}"
+                    feedback.append(feedback_msg)
                     continue
 
                 self.popup_please_wait()
 
-                try:
-                    # Capturar o inv_type
-                    inv_type_value = auto_click.selecionar(inv_type, 30)
-                    auto_click.scroll_to_element(att1_source)
-                    att1_source_value = auto_click.selecionar(att1_source)
-                    print(f"inv_type_value: {inv_type_value}, att1_source_value: {att1_source_value}")
+                # Verificar condição de filial e status
+                inv_type_value = auto_click.selecionar(inv_type, 30)
+                auto_click.scroll_to_element(att1_source)
+                att1_source_value = auto_click.selecionar(att1_source)
 
-                    if filial == inv_type_value and status == att1_source_value:
-                        feedback.append("ILPN com filial e status igual")
-                        auto_click.click_elemento(cancel, 30)
-                        print("Filial e Atributo igual ao selecionado")
-                        continue
-                    
-                    elif filial != inv_type_value and reason_code == "M1" and filial == "1401":
-                        self.executar_script(script_input_item_Name, f"00{item}", 30)
-                        auto_click.click_elemento(lupa, 30)
-                        auto_click.click_elemento(checkbox_sku, 30)
-                        auto_click.click_elemento(submit_sku, 30)
-                        auto_click.click_elemento(reasoncode_field, 30)
-                        auto_click.enviar_keys(reasoncode_field, reason_code, 30)
-                        auto_click.pressionar_enter(reasoncode_field, 30)
-
-                        # Preenchendo os campos adicionais
-                        auto_click.scroll_to_element(ref1)
-                        auto_click.click_elemento(ref1, 30)
-                        auto_click.enviar_keys(ref1, comentario1, 30)
-                        auto_click.enviar_keys(ref2, comentario2, 30)
-                        auto_click.enviar_keys(attribute1, status, 30)
-                        auto_click.click_elemento(inventory_type, 30)
-                        auto_click.click_elemento(inv_1401, 30)
-                        auto_click.scroll_to_element(product_status)
-                        auto_click.click_elemento(product_status)
-                        auto_click.scroll_to_element(product_status_021)
-                        auto_click.click_elemento(product_status_021)
-                        auto_click.click_elemento(confir_reidentify_item)
-                        feedback.append(f"Reason Code {reason_code} Feito")
-
-                    elif filial == inv_type_value and status != att1_source_value:
-                        self.executar_script(script_input_item_Name, f"00{item}", 30)
-                        auto_click.click_elemento(lupa, 30)
-                        auto_click.click_elemento(checkbox_sku, 30)
-                        auto_click.click_elemento(submit_sku, 30)
-                        auto_click.click_elemento(reasoncode_field, 30)
-                        auto_click.enviar_keys(reasoncode_field, reason_code, 30)
-                        auto_click.pressionar_enter(reasoncode_field, 30)
-
-                        # Preenchendo os campos adicionais
-                        auto_click.scroll_to_element(ref1)
-                        auto_click.click_elemento(ref1, 30)
-                        auto_click.enviar_keys(ref1, comentario1, 30)
-                        auto_click.enviar_keys(ref2, comentario2, 30)
-                        auto_click.enviar_keys(attribute1, status, 30)
-                        auto_click.click_elemento(inventory_type, 30)
-
-                        if inv_type_value == "1401":
-                            auto_click.click_elemento(inv_1401, 30)
-                        else:
-                            auto_click.click_elemento(inv_0014, 30)
-
-                        auto_click.scroll_to_element(product_status)
-                        auto_click.click_elemento(product_status)
-                        auto_click.scroll_to_element(product_status_021)
-                        auto_click.click_elemento(product_status_021)
-                        auto_click.click_elemento(confir_reidentify_item)
-                        feedback.append(f"Reason Code {reason_code} Feito")
-
-                    else:
-                        auto_click.click_elemento(cancel, 30)
-                        print("Verificar")
-                        continue
-
-                except Exception as e:
-                    print(f"Erro ao validar Inventory Type: {e}")
-                    feedback.append(f"[ERRO] {e}")
+                if filial == inv_type_value and status == att1_source_value:
+                    feedback_msg = "ILPN com filial e status igual"
+                    print("ILPN com filial e status igual")
                     auto_click.click_elemento(cancel, 30)
+                    feedback.append(feedback_msg)  # Adiciona antes do continue
                     continue
 
-                feedback.append("Concluído")
+                elif filial != inv_type_value and reason_code == "M1" and filial == "1401":
+                    self.executar_script(script_input_item_Name, f"00{item}", 30)
+                    auto_click.click_elemento(lupa, 30)
+                    auto_click.click_elemento(checkbox_sku, 30)
+                    auto_click.click_elemento(submit_sku, 30)
+                    auto_click.click_elemento(reasoncode_field, 30)
+                    auto_click.enviar_keys(reasoncode_field, reason_code, 30)
+                    auto_click.pressionar_enter(reasoncode_field, 30)
+
+                    # Preenchendo os campos adicionais
+                    auto_click.scroll_to_element(ref1)
+                    auto_click.click_elemento(ref1, 30)
+                    auto_click.enviar_keys(ref1, comentario1, 30)
+                    auto_click.enviar_keys(ref2, comentario2, 30)
+                    auto_click.enviar_keys(attribute1, status, 30)
+                    auto_click.click_elemento(inventory_type, 30)
+                    auto_click.click_elemento(inv_1401, 30)
+                    auto_click.scroll_to_element(product_status)
+                    auto_click.click_elemento(product_status)
+                    auto_click.scroll_to_element(product_status_021)
+                    auto_click.click_elemento(product_status_021)
+                    auto_click.click_elemento(confir_reidentify_item)
+
+                    feedback_msg = f"Reason Code {reason_code} Feito"
+                    print(feedback_msg, "M1")
+                    self.popup_please_wait()
+
+                elif filial == inv_type_value and status != att1_source_value:
+                    self.executar_script(script_input_item_Name, f"00{item}", 30)
+                    auto_click.click_elemento(lupa, 30)
+                    auto_click.click_elemento(checkbox_sku, 30)
+                    auto_click.click_elemento(submit_sku, 30)
+                    auto_click.click_elemento(reasoncode_field, 30)
+                    auto_click.enviar_keys(reasoncode_field, reason_code, 30)
+                    auto_click.pressionar_enter(reasoncode_field, 30)
+
+                    # Preenchendo os campos adicionais
+                    auto_click.scroll_to_element(ref1)
+                    auto_click.click_elemento(ref1, 30)
+                    auto_click.enviar_keys(ref1, comentario1, 30)
+                    auto_click.enviar_keys(ref2, comentario2, 30)
+                    auto_click.enviar_keys(attribute1, status, 30)
+                    auto_click.click_elemento(inventory_type, 30)
+
+                    if inv_type_value == "1401":
+                        auto_click.click_elemento(inv_1401, 30)
+                    else:
+                        auto_click.click_elemento(inv_0014, 30)
+
+                    auto_click.scroll_to_element(product_status)
+                    auto_click.click_elemento(product_status)
+                    auto_click.scroll_to_element(product_status_021)
+                    auto_click.click_elemento(product_status_021)
+                    auto_click.click_elemento(confir_reidentify_item)
+                    feedback.append(f"Reason Code {reason_code} Feito")
+
+                    feedback_msg = f"Reason Code {reason_code} Feito"
+                    print(feedback_msg)
+                    self.popup_please_wait()
+
+                else:
+                    auto_click.click_elemento(cancel, 30)
+                    feedback_msg = "Verificar"
+                    feedback.append(feedback_msg)
+                    continue
+
                 print(f"ILPN {ilpn} processado com sucesso")
 
             except Exception as e:
-                print(f"Erro no loop {e}")
-                feedback.append(f"[ERRO] {e}")
+                print(f"Erro ao processar ILPN {ilpn}: {e}")
+                feedback_msg = f"[ERRO] {e}"
 
-        # if self.driver:
-        #     self.driver.quit()
+            feedback.append(feedback_msg)  # Adiciona o feedback ao final da iteração
 
-        # Adicionar a coluna de feedback na planilha
-        df['Feedback'] = feedback
-        
+        # Garantir que `feedback` tenha o mesmo tamanho do `df`
+        while len(feedback) < len(df):
+            feedback.append("Erro: Não processado")  
+            print(f"Tamanho do DataFrame: {len(df)}, Tamanho da lista feedback: {len(feedback)}")
+
+        df['Feedback'] = feedback[:len(df)]
         return df
 
     def importar_planilha(self):

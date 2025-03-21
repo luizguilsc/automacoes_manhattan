@@ -1,8 +1,10 @@
 from tkinter import *
 from tkinter import filedialog, messagebox, ttk
+import ttkbootstrap as ttk
 import tkinter as tk
 import pandas as pd
 import os
+import webbrowser
 
 class TelaPrincipal:
     def __init__(self, root):
@@ -10,6 +12,32 @@ class TelaPrincipal:
         self.root.title("Automações Manhattan")
         self.root.geometry("600x600")
         
+        # Campo de links, redes sociais e botão "?" sobre o app
+        # Frame para links (GitHub, LinkedIn, Ajuda)
+        self.frame_links = ttk.Frame(self.root)
+        self.frame_links.pack(padx=5, pady=5, anchor= "e")
+
+        # Funções para abrir os links
+        def abrir_github():
+            webbrowser.open("https://github.com/seu-usuario")
+        def abrir_linkedin():
+            webbrowser.open("https://linkedin.com/in/seu-usuario")
+        def mostrar_ajuda():
+            messagebox.showinfo("Sobre o Aplicativo", "Este é um software de automação para processos Manhattan.\n\nAntes de iniciar precisa preencher o campo de login e senha, salvando em seguida.\n\n Primeira coisa a se fazer é extrair pelo export no Manhattan o Excel(.csv).\n\n Para etapas de EAD faturado importar apenas a planilha com as ASN, clicar em 'Receber EAD' - sempre conferir se foi efetuado com sucesso, em seguida clicar em 'Executar Verify'.\n\nPara realizar os Reason Codes, primeiro importar Excel(.csv) com a 'ILPN' e 'Item', preencher os comentário e certificar de selecionar o Reson Code correto, filial e Status.\n\nLembrando que o software apenas automotiza o que você faria manualmente, da mesma forma é necessária devia atênção quando selecionar a filial e status, caso execute com alguma informação errada, basta fechar o Chrome da automação que o processo será cancelado.\n\nNa parte inferior está o display da planilha importada, onde mostra o feedback quando as ASN ou ILPN são processadas")
+
+        # Carregar ícones
+        self.icon_github = PhotoImage(file="icons/github.png")
+        self.icon_linkedin = PhotoImage(file="icons/linkedin.png")
+        self.icon_ajuda = PhotoImage(file="icons/help.png")
+
+        # Criando botões com ícones
+        self.button_github = ttk.Button(self.frame_links, bootstyle="light-toolbutton", image=self.icon_github, command=abrir_github)
+        self.button_github.grid(column=0, row=0, padx=5)
+        self.button_linkedin = ttk.Button(self.frame_links, bootstyle="light-toolbutton", image=self.icon_linkedin, command=abrir_linkedin)
+        self.button_linkedin.grid(column=1, row=0, padx=5)
+        self.button_ajuda = ttk.Button(self.frame_links, bootstyle="primary-toolbutton", image=self.icon_ajuda, command=mostrar_ajuda)
+        self.button_ajuda.grid(column=2, row=0, padx=5)
+
         # Frame para os campos de login
         self.frame_login = ttk.LabelFrame(self.root, text="Login")
         self.frame_login.pack(padx=10, pady=10, fill=X)
@@ -254,6 +282,6 @@ class TelaPrincipal:
     
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ttk.Window(themename="superhero") #tk.Tk()
     app = TelaPrincipal(root)
     root.mainloop()
