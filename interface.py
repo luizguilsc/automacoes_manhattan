@@ -19,9 +19,9 @@ class TelaPrincipal:
 
         # Funções para abrir os links
         def abrir_github():
-            webbrowser.open("https://github.com/seu-usuario")
+            webbrowser.open("https://github.com/luizguilsc")
         def abrir_linkedin():
-            webbrowser.open("https://linkedin.com/in/seu-usuario")
+            webbrowser.open("https://www.linkedin.com/in/luiz-guilherme-0b8a2a300/")
         def mostrar_ajuda():
             messagebox.showinfo("Sobre o Aplicativo", "Este é um software de automação para processos Manhattan.\n\nAntes de iniciar precisa preencher o campo de login e senha, salvando em seguida.\n\n Primeira coisa a se fazer é extrair pelo export no Manhattan o Excel(.csv).\n\n Para etapas de EAD faturado importar apenas a planilha com as ASN, clicar em 'Receber EAD' - sempre conferir se foi efetuado com sucesso, em seguida clicar em 'Executar Verify'.\n\nPara realizar os Reason Codes, primeiro importar Excel(.csv) com a 'ILPN' e 'Item', preencher os comentário e certificar de selecionar o Reson Code correto, filial e Status.\n\nLembrando que o software apenas automotiza o que você faria manualmente, da mesma forma é necessária devia atênção quando selecionar a filial e status, caso execute com alguma informação errada, basta fechar o Chrome da automação que o processo será cancelado.\n\nNa parte inferior está o display da planilha importada, onde mostra o feedback quando as ASN ou ILPN são processadas")
 

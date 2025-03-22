@@ -148,7 +148,7 @@ class Automation():
         if self.driver:
             try:
                 please_wait = "//*[@id='loading-2-msg']"
-                WebDriverWait(self.driver, 30).until(EC.invisibility_of_element_located((By.XPATH,please_wait)))
+                WebDriverWait(self.driver, 10).until(EC.invisibility_of_element_located((By.XPATH,please_wait)))
                 print("Elemento foi encontrado, passou pelo código e esperou até ficar invisivel")
             except Exception as e:
                 print(f"Elemento não foi encontrado ou não ficou visivel{e}")    
@@ -188,6 +188,9 @@ class Automation():
         auto_click = AutoClick(self.driver)
         feedback = []
 
+        loading_popup_full_path = '/html/body/app-root/ion-app/ion-loading/div[2]/div[2]'
+        loading_popup_partial = "//*[@id='loading-3-msg']"
+        loading_element = '<div class="loading-content sc-ion-loading-md" id="loading-3-msg">Loading....</div>'
         # XPaths dos elementos
         asn_campo_1 = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[1]/input"
         go_receiving_1 = "/html/body/app-root/ion-app/ion-router-outlet/app-workflow/ion-content/div/wm-workflow-list/ion-list/div/div[2]/div/div/text-input/ion-item/ion-grid/ion-row[2]/ion-col[2]/ion-button"
@@ -216,11 +219,11 @@ class Automation():
 
             try:
                 # Clica no campo, limpa e insere o ASN
-                if auto_click.elemento_existe(asn_campo_1, 2):
+                if auto_click.elemento_existe(asn_campo_1, 1):
                     print("Campo ASN encontrado, clicando...")
-                    auto_click.click_elemento(asn_campo_1, 2)
-                    auto_click.clear_field(asn_campo_1, 2)
-                    auto_click.enviar_keys(asn_campo_1, asn, 2)
+                    auto_click.click_elemento(asn_campo_1, 1)
+                    auto_click.clear_field(asn_campo_1, 1)
+                    auto_click.enviar_keys(asn_campo_1, asn, 1)
                 else:
                     print(f"Campo ASN não encontrado para {asn}, pulando...")
                     feedback.append(f"Erro: Campo ASN não encontrado para {asn}")
@@ -300,7 +303,12 @@ class Automation():
                 print(f"Erro inesperado na automação: {e}")
                 status = "//*[@id='main']/screen-page/div/div/div[2]/div/ion-content/card-panel/div/div/card-view/div/div[1]/div[1]"
                 desc = auto_click.selecionar(status, 30).strip()
-                feedback_msg = f"Verificar ASN manualmente {desc}"
+                try:
+                    cancel = "/html/body/app-root/ion-app/ion-modal/verify-popup/ion-footer/ion-toolbar/ion-row/ion-col[1]/ion-button"
+                    auto_click.click_elemento(cancel, 30)
+                except:
+                    pass
+                feedback_msg = f"Analisar ASN manualmente status: {desc}"
 
             feedback.append(feedback_msg)
 
@@ -346,20 +354,19 @@ class Automation():
             print(f"Status da ASN {asn}: {status}")
 
             if status.lower() != "in receiving":
-                auto_click.click_elemento(asn_field, 30)
-                auto_click.clear_field(asn_field, 30)
+                messagebox.showinfo("Atenção", f"ASN {asn} não está em In Receiving. Status: {status}\n\n Fechando Execução do Verify atualizar planilha por segurança")
+                self.driver.quit()
                 raise Exception(f"ASN não está In Receiving - Status: {status}")
 
             # Se chegou aqui, o status era "In Receiving", então continua com a verificação
             auto_click.scroll_to_element(botao_verify)
             auto_click.click_elemento(botao_verify, 30)
             auto_click.click_elemento(confirma_verify, 30)
+            # self.popup_please_wait()
             auto_click.clear_field(asn_field, 30)
 
         except Exception as e:
             print(f"Erro ao verificar status do ASN: {e}")
-            auto_click.click_elemento(asn_field, 30)
-            auto_click.clear_field(asn_field, 30)
             raise Exception("Erro ao verificar status do ASN")
 
     def reason_code_auto(self, df, reason_code, status, filial, comentario1, comentario2):
@@ -411,6 +418,7 @@ class Automation():
 
                     if elemento_desejado:
                         elemento_desejado.click()
+                        sleep(0.5)
                         print("ReIdentify Item encontrado")
                     else:
                         print("Elemento não encontrado")
