@@ -436,7 +436,6 @@ class Automation():
                 # Verificar condição de filial e status
                 for tentativas in range(3):
                     try:
-                        sleep(1)
                         inv_type_value = auto_click.selecionar(inv_type, 30)
                         auto_click.scroll_to_element(att1_source)
                         att1_source_value = auto_click.selecionar(att1_source)
@@ -445,7 +444,7 @@ class Automation():
                         print(f"Erro ao selecionar inv_type_value ILPN{ilpn}, Tentando novamente... Tentativa {tentativas + 1}")
                         feedback_msg = "[ERRO] Erro ao selecionar inv_type_value"
                         feedback.append(feedback_msg)
-                        continue
+                        break
 
                 if filial == inv_type_value and status == att1_source_value:
                     feedback_msg = "ILPN com filial e status igual"

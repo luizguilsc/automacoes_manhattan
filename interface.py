@@ -4,8 +4,19 @@ import ttkbootstrap as ttk
 import tkinter as tk
 import pandas as pd
 import os
+import sys
 import webbrowser
+import automacao
 
+def get_resource_path(relative_path):
+    if getattr(sys,'frozen',False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+# Criação da janela principal
 class TelaPrincipal:
     def __init__(self, root):
         self.root = root
@@ -73,6 +84,12 @@ class TelaPrincipal:
         self.frame_links = ttk.Frame(self.frame_principal)
         self.frame_links.grid(column=1,row=0,padx=5, pady=5, sticky='e')
 
+        
+        # Adicionando o display para exibir os dados da planilha
+        self.data_display = Text(self.root, wrap=NONE)
+        self.data_display.pack(padx=10, pady=10, fill=BOTH, expand=True)
+        
+
         # Funções para abrir os links
         def abrir_github():
             webbrowser.open("https://github.com/luizguilsc")
@@ -84,9 +101,9 @@ class TelaPrincipal:
             messagebox.showinfo("Sobre o Aplicativo", "Este é um software de automação para processos Manhattan.\n\nAntes de iniciar precisa preencher o campo de login e senha, salvando em seguida.\n\nPrimeira coisa a se fazer é extrair pelo export no Manhattan o Excel(.csv).\n\nPara etapas de EAD faturado importar apenas a planilha com as ASN, clicar em 'Receber EAD' - sempre conferir se foi efetuado com sucesso, em seguida clicar em 'Executar Verify'.\n\nPara realizar os Reason Codes, primeiro importar Excel(.csv) com a 'ILPN' e 'Item', preencher os comentário e certificar de selecionar o Reson Code correto, filial e Status.\n\nLembrando que o software apenas automotiza o que você faria manualmente, da mesma forma é necessária devia atênção quando selecionar a filial e status, caso execute com alguma informação errada, basta fechar o Chrome da automação que o processo será cancelado.\n\nNa parte inferior está o display da planilha importada, onde mostra o feedback quando as ASN ou ILPN são processadas")
 
         # Carregar ícones
-        self.icon_github = PhotoImage(file="icons/github.png")
-        self.icon_linkedin = PhotoImage(file="icons/linkedin.png")
-        self.icon_ajuda = PhotoImage(file="icons/help.png")
+        self.icon_github = PhotoImage(file=get_resource_path("github.png"))
+        self.icon_linkedin = PhotoImage(file=get_resource_path("linkedin.png"))
+        self.icon_ajuda = PhotoImage(file=get_resource_path("help.png"))
 
         # Criando botões com ícones
         self.button_github = ttk.Button(self.frame_links, bootstyle="light-toolbutton", image=self.icon_github, command=abrir_github)
@@ -143,72 +160,62 @@ class TelaPrincipal:
          ead_button.grid(column=2, row=0, padx=5, pady=5)
 
     def create_tab4_content(self):
-         frame_comentarios = ttk.LabelFrame(self.tab3, text='Comentários e Reason Code')
-         frame_comentarios.pack(padx=10, pady=10, fill=X)
+        frame_comentarios = ttk.LabelFrame(self.tab3, text='Comentários e Reason Code')
+        frame_comentarios.pack(padx=10, pady=10, fill=X)
 
-         ref1_label = ttk.Label(frame_comentarios, text='Selecionar Comentário - 1:')
-         ref1_label.grid(column=0, row=0, sticky='w', padx=5, pady=5)
+        # Comentário 1
+        ref1_label = ttk.Label(frame_comentarios, text='Selecionar Comentário - 1:')
+        ref1_label.grid(column=0, row=0, sticky='w', padx=5, pady=5)
 
-         ref1_comentario_lista = ['Ilpn C/Bloqueio (82/72)', 'M1 - Origem 0014 P/ InventoryType P/ 1401', 'Trocando Status BOA P/ QEB', 'Trocando Status QEB P/ BOA', 'D15 - Débito 20%', 'FA - Débito Extravio 100%', 'DT - Débito Total 100%']
-         comentarios = StringVar()
-         coment_1 = ttk.Combobox(frame_comentarios, width=40, textvariable=comentarios)
-         coment_1['values'] = ref1_comentario_lista
-         coment_1.grid(column=1, row=0, padx=5, pady=5)
+        ref1_comentario_lista = ['Ilpn C/Bloqueio (82/72)', 'M1 - Origem 0014 P/InventoryType P/ 1401', 
+                                'Trocando Status BOA P/ QEB', 'Trocando Status QEB P/ BOA', 'D15 - Débito 20%', 
+                                'FA - Débito Extravio 100%', 'DT - Débito Total 100%']
+        
+        self.comentarios = tk.StringVar()
+        self.coment_1 = ttk.Combobox(frame_comentarios, width=40, textvariable=self.comentarios, values=ref1_comentario_lista, state="readonly")
+        self.coment_1.grid(column=1, row=0, padx=5, pady=5)
 
-         ref2_label = ttk.Label(frame_comentarios, text='Digitar Comentário/Observação - 2:')
-         ref2_label.grid(column=0, row=1, sticky='w', padx=5, pady=5)
+        # Comentário 2
+        ref2_label = ttk.Label(frame_comentarios, text='Digitar Comentário/Observação - 2:')
+        ref2_label.grid(column=0, row=1, sticky='w', padx=5, pady=5)
 
-         ref2_entry = ttk.Entry(frame_comentarios, width=43)
-         ref2_entry.grid(column=1, row=1, padx=5, pady=5)
+        self.ref2_entry = ttk.Entry(frame_comentarios, width=43)
+        self.ref2_entry.grid(column=1, row=1, padx=5, pady=5)
 
-         frame_reason_filial_status = ttk.Frame(frame_comentarios)
-         frame_reason_filial_status.grid(column=0, row=2, columnspan=2, pady=10, sticky='w')
+        # Frame Reason Code, Filial e Status
+        frame_reason_filial_status = ttk.Frame(frame_comentarios)
+        frame_reason_filial_status.grid(column=0, row=2, columnspan=2, pady=10, sticky='w')
 
-         reasoncode_label = ttk.Label(frame_reason_filial_status, text='Reason Code')
-         reasoncode_label.grid(column=0, row=0, padx=5)
+        # Reason Code
+        reasoncode_label = ttk.Label(frame_reason_filial_status, text='Reason Code')
+        reasoncode_label.grid(column=0, row=0, padx=5)
 
-         lista_reasoncode = ['T3', 'M1', '72', '82', 'FA', 'DT', 'AV', 'VF', 'VR']
-         rc = StringVar()
-         lista_itens = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=rc)
-         lista_itens['values'] = lista_reasoncode
-         lista_itens.grid(column=1, row=0, padx=5)
+        lista_reasoncode = ['T3', 'M1', '72', '82', 'FA', 'DT', 'AV', 'VF', 'VR']
+        self.rc = tk.StringVar()
+        self.lista_itens = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=self.rc, values=lista_reasoncode, state="readonly")
+        self.lista_itens.grid(column=1, row=0, padx=5)
 
-         filial_field = ttk.Label(frame_reason_filial_status, text='Filial')
-         filial_field.grid(column=2, row=0, padx=5)
+        # Filial
+        filial_field = ttk.Label(frame_reason_filial_status, text='Filial')
+        filial_field.grid(column=2, row=0, padx=5)
 
-         lista_filial = ["1401", "0014"]
-         filial = StringVar()
-         lista_filial_combobox = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=filial)
-         lista_filial_combobox['values'] = lista_filial
-         lista_filial_combobox.grid(column=3, row=0, padx=5)
+        lista_filial = ["1401", "0014"]
+        self.filial = tk.StringVar()
+        self.lista_filial_combobox = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=self.filial, values=lista_filial, state="readonly")
+        self.lista_filial_combobox.grid(column=3, row=0, padx=5)
 
-         status_field = ttk.Label(frame_reason_filial_status, text='Status BOA/QEB')
-         status_field.grid(column=4, row=0, padx=5)
+        # Status
+        status_field = ttk.Label(frame_reason_filial_status, text='Status BOA/QEB')
+        status_field.grid(column=4, row=0, padx=5)
 
-         lista_status = ["BOA", "QEB"]
-         status = StringVar()
-         lista_status_combobox = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=status)
-         lista_status_combobox['values'] = lista_status
-         lista_status_combobox.grid(column=5, row=0, padx=5)
+        lista_status = ["BOA", "QEB"]
+        self.status = tk.StringVar()
+        self.lista_status_combobox = ttk.Combobox(frame_reason_filial_status, width=5, textvariable=self.status, values=lista_status, state="readonly")
+        self.lista_status_combobox.grid(column=5, row=0, padx=5)
 
-         executar_button = ttk.Button(frame_reason_filial_status, text='Executar Reason Code', command=self.executar_funcao)
-         executar_button.grid(column=6, row=0, padx=5)
-
-         # Display da Planilha com Scroll
-         display_planilha = ttk.LabelFrame(self.root, text='Planilha')
-         display_planilha.pack(padx=10, pady=10, fill=BOTH, expand=True)
-
-         scrollbar_x = ttk.Scrollbar(display_planilha, orient=HORIZONTAL)
-         scrollbar_x.pack(side=BOTTOM, fill=X)
-
-         scrollbar_y = ttk.Scrollbar(display_planilha, orient=VERTICAL)
-         scrollbar_y.pack(side=RIGHT, fill=Y)
-
-         self.data_display = Text(display_planilha, wrap=NONE, xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
-         self.data_display.pack(padx=5, pady=5, fill=BOTH, expand=True)
-
-         scrollbar_x.config(command=self.data_display.xview)
-         scrollbar_y.config(command=self.data_display.yview)
+        # Botão de execução
+        executar_button = ttk.Button(frame_reason_filial_status, text='Executar Reason Code', command=self.executar_funcao)
+        executar_button.grid(column=6, row=0, padx=5)
 
     def update_entry(self, value):
         self.reasoncode_entry.delete(0, END)
@@ -231,9 +238,10 @@ class TelaPrincipal:
                 else:
                     self.df = pd.read_excel(file)
                 messagebox.showinfo("Sucesso", f"Arquivo carregado: {os.path.basename(file)}")
-                self.exibir_dados_planilha()
+                self.exibir_dados_planilha()  # Chamada para exibir os dados da planilha
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao importar planilha: {e}")
+
 
     def exibir_dados_planilha(self):
         self.data_display.delete(1.0, END)
@@ -242,32 +250,46 @@ class TelaPrincipal:
     def executar_funcao(self):
         try:
             from automacao import Automation, Login
+
             email = self.entry_email.get()
             senha = self.entry_senha.get()
+
             if not email or not senha:
                 messagebox.showerror("Erro", "Preencha o e-mail e a senha antes de continuar.")
                 return
+            
             if not hasattr(self, 'df') or self.df.empty:
                 messagebox.showerror("Erro", "Nenhuma planilha foi importada!")
                 return
-            reason_code = self.rc.get()
-            filial = self.filial.get()
-            status = self.status.get()
-            comentario1 = self.comentarios.get()
-            comentario2 = self.ref2_entry.get()
+            
+            # Pegando valores corretamente das StringVar
+            reason_code = self.rc.get().strip()
+            filial = self.filial.get().strip()
+            status = self.status.get().strip()
+            comentario1 = self.comentarios.get().strip()
+            comentario2 = self.ref2_entry.get().strip()
+
+            # Verificar se os campos obrigatórios foram preenchidos
+            if not reason_code or not filial or not status:
+                messagebox.showerror("Erro", "Selecione o Reason Code, Filial e Status antes de executar.")
+                return
+
             automation = Automation()
             automation.setup_driver()
             login = Login(automation.driver, email, senha)
             login.logando()
+
             automation.selecionar_tela_inventory_details()
+
             self.df = automation.reason_code_auto(self.df, reason_code, status, filial, comentario1, comentario2)
+
             self.exibir_dados_planilha()
             messagebox.showinfo("Sucesso", "Execução concluída com sucesso!")
+
             automation.close_driver()
+
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao executar função: {e}")
-            if 'automation' in locals() and automation.driver:
-                automation.close_driver()
 
     def executar_verify(self):
         try:
