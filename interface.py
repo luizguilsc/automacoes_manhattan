@@ -10,7 +10,7 @@ class TelaPrincipal:
     def __init__(self, root):
         self.root = root
         self.root.title("Automações Manhattan")
-        self.root.geometry("800x600")
+        self.root.geometry("620x550")
 
         # Create a Notebook (tabbed interface)
         self.notebook = ttk.Notebook(self.root)
@@ -41,11 +41,37 @@ class TelaPrincipal:
         self.create_tab4_content()
 
     def create_tab1_content(self):
+
+        # Frame principal para conter tema e links
+        
+        self.frame_principal = ttk.Frame(self.tab4)
+        self.frame_principal.pack(padx=10, pady=10, fill=X)
+        
+        # Frame para seleção de tema
+        self.frame_tema = ttk.LabelFrame(self.frame_principal, text="Tema do Aplicativo")
+        self.frame_tema.grid(column=0, row=0, padx=10, pady=10, sticky='w')
+
+        # Label para o ComboBox de temas
+        self.label_tema = ttk.Label(self.frame_tema, text="Escolha o Tema:")
+        self.label_tema.grid(column=0, row=0, padx=5, pady=5)
+
+        # Variável para armazenar o tema selecionado
+        self.tema_selecionado = tk.StringVar(value="litera")  # Tema inicial
+        # ComboBox para escolher o tema
+        self.lista_tema = ["cosmo", "litera", "darkly", "cyborg", "superhero", "solar"]
+        
+        self.combobox_tema = ttk.Combobox(self.frame_tema, values=self.lista_tema, textvariable=self.tema_selecionado, state="readonly")
+        self.combobox_tema.grid(column=1, row=0, padx=5, pady=5)
+        
+        self.combobox_tema.set("litera")  # Define o tema inicial como "darkly"
+
+        # Botão para aplicar o tema
+        self.botao_tema = ttk.Button(self.frame_tema, text="Aplicar Tema", command=self.aplicar_tema)
+        self.botao_tema.grid(column=2, row=0, padx=5, pady=5)
+
         # Frame para links (GitHub, LinkedIn, Ajuda)
-        self.frame_links = ttk.Frame(self.tab4)
-        self.frame_links.pack(padx=5, pady=5, anchor="e")
-
-
+        self.frame_links = ttk.Frame(self.frame_principal)
+        self.frame_links.grid(column=1,row=0,padx=5, pady=5, sticky='e')
 
         # Funções para abrir os links
         def abrir_github():
@@ -71,34 +97,7 @@ class TelaPrincipal:
         
         self.button_ajuda = ttk.Button(self.frame_links, bootstyle="primary-toolbutton", image=self.icon_ajuda, command=mostrar_ajuda)
         self.button_ajuda.grid(column=2, row=0, padx=5)
-
-
-        # Frame principal para conter tema e links
         
-        self.frame_principal = ttk.Frame(self.tab4)
-        self.frame_principal.pack(padx=10, pady=10, fill=X)
-        
-        # Frame para seleção de tema
-        self.frame_tema = ttk.LabelFrame(self.frame_principal, text="Tema do Aplicativo")
-        self.frame_tema.grid(column=0, row=0, padx=10, pady=10, sticky='w')
-
-        # Label para o ComboBox de temas
-        self.label_tema = ttk.Label(self.frame_tema, text="Escolha o Tema:")
-        self.label_tema.grid(column=0, row=0, padx=5, pady=5)
-
-        # Variável para armazenar o tema selecionado
-        self.tema_selecionado = tk.StringVar(value="darkly")  # Tema inicial
-        # ComboBox para escolher o tema
-        self.lista_tema = ["cosmo", "flatly", "journal", "litera", "lumen", "minty", "pulse", "sandstone", "united", "yeti", "morph", "darkly", "cyborg", "superhero", "solar"]
-        
-        self.combobox_tema = ttk.Combobox(self.frame_tema, values=self.lista_tema, textvariable=self.tema_selecionado, state="readonly")
-        self.combobox_tema.grid(column=1, row=0, padx=5, pady=5)
-        
-        self.combobox_tema.set("litera")  # Define o tema inicial como "darkly"
-
-        # Botão para aplicar o tema
-        self.botao_tema = ttk.Button(self.frame_tema, text="Aplicar Tema", command=self.aplicar_tema)
-        self.botao_tema.grid(column=2, row=0, padx=5, pady=5)
 
     def aplicar_tema(self):
         novo_tema = self.tema_selecionado.get()  # Obtém o tema selecionado
